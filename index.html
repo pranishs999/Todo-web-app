@@ -22,7 +22,7 @@
       <div id="global-error" class="hidden mb-4 p-4 bg-red-500/10 border border-red-500 rounded-2xl text-red-400 text-sm"></div>
 
       <div id="login-form">
-        <input id="login-email" type="email" placeholder="Email" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4" oninput="liveValidateEmail(this)">
+        <input id="login-id" type="text" placeholder="Email or Username" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4">
         <div class="relative mb-6">
           <input id="login-pass" type="password" placeholder="Password" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4" oninput="liveValidatePassword(this)">
           <button type="button" onclick="togglePassword('login-pass')" class="absolute right-5 top-5 text-zinc-400"><i id="login-pass-icon" class="fas fa-eye"></i></button>
@@ -32,6 +32,7 @@
 
       <div id="register-form" class="hidden">
         <input id="reg-name" placeholder="Full Name" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4" oninput="liveValidateName(this)">
+        <input id="reg-user" placeholder="Username" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4">
         <input id="reg-email" type="email" placeholder="Email" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4" oninput="liveValidateEmail(this)">
         <div class="relative mb-6">
           <input id="reg-pass" type="password" placeholder="Password" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4" oninput="liveValidatePassword(this)">
@@ -60,6 +61,9 @@
       </div>
       <nav class="space-y-1">
         <button onclick="showSection('kanban')" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-zinc-800">📋 Kanban</button>
+        <button onclick="logout()" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-red-500/10 text-red-400 mt-auto">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
       </nav>
     </div>
 
@@ -176,15 +180,15 @@
     }
 
     async function login() {
-      const email = document.getElementById('login-email').value.trim();
+      const identifier = document.getElementById('login-id').value.trim();
       const password = document.getElementById('login-pass').value;
-      if (!email || !password) return showGlobalError("All fields required");
-
+      if (!identifier || !password) return showGlobalError("All fields required");
+ 
       try {
         const res = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ identifier, password })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.msg);
@@ -196,15 +200,16 @@
 
     async function register() {
       const name = document.getElementById('reg-name').value.trim();
+      const username = document.getElementById('reg-user').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const password = document.getElementById('reg-pass').value;
-      if (!name || !email || !password) return showGlobalError("All fields required");
-
+      if (!name || !username || !email || !password) return showGlobalError("All fields required");
+ 
       try {
         const res = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password })
+          body: JSON.stringify({ name, username, email, password })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.msg);
@@ -347,6 +352,12 @@
       doc.save("TeamTodo_Report.pdf");
     }
 
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      location.reload();
+    }
+ 
     function showSection() { /* dummy */ }
 
     // Auto Login

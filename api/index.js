@@ -26,6 +26,7 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/teamtodo')
 // Models
 const userSchema = new mongoose.Schema({
   name: String,
+  username: { type: String, unique: true, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   role: { type: String, default: 'Member' }
@@ -58,12 +59,14 @@ const auth = (req, res, next) => {
 // ===================== AUTH =====================
 app.post('/api/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if (await User.findOne({ email })) return res.status(400).json({ msg: 'User already exists' });
+    const { name, username, email, password } = req.body;
+    if (await User.findOne({ $or: [{ email }, { username }] })) {
+      return res.status(400).json({ msg: 'User already exists (email or username)' });
+    }
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed });
+    const user = await User.create({ name, username, email, password: hashed });
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret123', { expiresIn: '7d' });
-    res.json({ token, user: { name: user.name, role: user.role, email } });
+    res.json({ token, user: { name: user.name, username: user.username, role: user.role, email } });
   } catch (err) {
     res.status(400).json({ msg: err.message });
   }
@@ -71,13 +74,13 @@ app.post('/api/register', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const { identifier, password } = req.body; // identifier = email or username
+    const user = await User.findOne({ $or: [{ email: identifier }, { username: identifier }] });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret123', { expiresIn: '7d' });
-    res.json({ token, user: { name: user.name, role: user.role, email } });
+    res.json({ token, user: { name: user.name, username: user.username, role: user.role, email: user.email } });
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
   }
