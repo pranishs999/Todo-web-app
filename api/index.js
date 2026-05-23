@@ -99,15 +99,33 @@ app.post('/api/tasks', auth, async (req, res) => {
 });
 
 app.put('/api/tasks/:id', auth, async (req, res) => {
-  const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(task);
-  io.emit('taskUpdated', task);
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Task not found' });
+    if (req.user.role !== 'Admin' && task.createdBy !== req.user.id) {
+      return res.status(403).json({ msg: 'Unauthorized' });
+    }
+    const updated = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updated);
+    io.emit('taskUpdated', updated);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
 });
 
 app.delete('/api/tasks/:id', auth, async (req, res) => {
-  await Task.findByIdAndDelete(req.params.id);
-  res.json({ msg: 'Deleted' });
-  io.emit('taskDeleted', req.params.id);
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ msg: 'Task not found' });
+    if (req.user.role !== 'Admin' && task.createdBy !== req.user.id) {
+      return res.status(403).json({ msg: 'Unauthorized' });
+    }
+    await Task.findByIdAndDelete(req.params.id);
+    res.json({ msg: 'Deleted' });
+    io.emit('taskDeleted', req.params.id);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
 });
 
 module.exports = app;

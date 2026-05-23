@@ -281,18 +281,30 @@
         const key = (task.status || 'Todo').toLowerCase().replace(' ', '');
         const col = cols[key] || cols.todo;
         const card = document.createElement('div');
-        card.className = `task-card glass p-5 rounded-3xl mb-3 cursor-grab`;
         card.draggable = true;
         card.dataset.id = task._id;
         card.ondragstart = (e) => e.dataTransfer.setData("taskId", task._id);
+        const isOwner = task.createdBy === currentUser.id || currentUser.role === 'Admin';
         card.innerHTML = `
-          <div class="font-medium">${task.title}</div>
-          ${task.description ? `<div class="text-xs text-zinc-400 mt-2">${task.description}</div>` : ''}
-          <div class="flex justify-between mt-3 text-xs">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" ${task.status === 'Completed' ? 'checked' : ''} onchange="toggleStatus('${task._id}', '${task.status}')" class="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-blue-600 focus:ring-0">
+              <div class="font-medium ${task.status === 'Completed' ? 'line-through text-zinc-500' : ''}">${task.title}</div>
+            </div>
+            ${isOwner ? `
+              <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onclick="editTask('${task._id}')" class="text-zinc-400 hover:text-blue-400"><i class="fas fa-pencil-alt text-xs"></i></button>
+                <button onclick="deleteTask('${task._id}')" class="text-zinc-400 hover:text-red-400"><i class="fas fa-trash text-xs"></i></button>
+              </div>
+            ` : ''}
+          </div>
+          ${task.description ? `<div class="text-xs text-zinc-400 mt-2 ml-6">${task.description}</div>` : ''}
+          <div class="flex justify-between mt-3 text-xs ml-6">
             <span class="px-3 py-1 rounded-full ${task.priority === 'High' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}">${task.priority}</span>
             <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
           </div>
         `;
+        card.className = `task-card group glass p-5 rounded-3xl mb-3 cursor-grab`;
         col.appendChild(card);
       });
     }
@@ -315,25 +327,72 @@
     async function saveTask() {
       const title = document.getElementById('task-title').value.trim();
       if (!title) return alert("Title required");
-
+ 
       const payload = {
         title,
         description: document.getElementById('task-desc').value.trim(),
         priority: document.getElementById('task-priority').value,
-        dueDate: document.getElementById('task-due').value || null,
-        status: 'Todo'
+        dueDate: document.getElementById('task-due').value || null
       };
 
       try {
-        await fetch('/api/tasks', {
-          method: 'POST',
+        const url = editingTaskId ? `/api/tasks/${editingTaskId}` : '/api/tasks';
+        const method = editingTaskId ? 'PUT' : 'POST';
+        
+        const res = await fetch(url, {
+          method,
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload)
         });
+        if (!res.ok) throw new Error("Failed to save task");
         hideModal();
         loadTasks();
       } catch (e) {
-        alert("Failed to create task");
+        alert(e.message);
+      }
+    }
+
+    async function toggleStatus(id, currentStatus) {
+      const statuses = ['Todo', 'In Progress', 'Completed'];
+      let nextIndex = (statuses.indexOf(currentStatus) + 1) % statuses.length;
+      const nextStatus = statuses[nextIndex];
+
+      try {
+        await fetch(`/api/tasks/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ status: nextStatus })
+        });
+        loadTasks();
+      } catch (e) {
+        alert("Failed to update status");
+      }
+    }
+
+    async function editTask(id) {
+      const task = allTasks.find(t => t._id === id);
+      if (!task) return;
+      editingTaskId = id;
+      document.getElementById('modal-title').textContent = 'Edit Task';
+      document.getElementById('save-btn').textContent = 'Save Changes';
+      document.getElementById('task-title').value = task.title;
+      document.getElementById('task-desc').value = task.description || '';
+      document.getElementById('task-priority').value = task.priority;
+      document.getElementById('task-due').value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
+      document.getElementById('task-modal').classList.remove('hidden');
+    }
+
+    async function deleteTask(id) {
+      if (!confirm("Are you sure you want to delete this task?")) return;
+      try {
+        const res = await fetch(`/api/tasks/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Delete failed");
+        loadTasks();
+      } catch (e) {
+        alert(e.message);
       }
     }
 
