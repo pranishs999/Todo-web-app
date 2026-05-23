@@ -181,7 +181,7 @@
       if (!email || !password) return showGlobalError("All fields required");
 
       try {
-        const res = await fetch('http://localhost:8768/api/login', {
+        const res = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
@@ -201,7 +201,7 @@
       if (!name || !email || !password) return showGlobalError("All fields required");
 
       try {
-        const res = await fetch('http://localhost:8768/api/register', {
+        const res = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password })
@@ -234,14 +234,14 @@
     }
 
     function connectSocket() {
-      socket = io('http://localhost:8768');
+      socket = io();
       socket.on('taskCreated', () => loadTasks());
       socket.on('taskUpdated', () => loadTasks());
       socket.on('taskDeleted', () => loadTasks());
     }
 
     async function loadTasks() {
-      const res = await fetch('http://localhost:8768/api/tasks', {
+      const res = await fetch('/api/tasks', {
         headers: { Authorization: `Bearer ${token}` }
       });
       allTasks = await res.json();
@@ -320,7 +320,7 @@
       };
 
       try {
-        await fetch('http://localhost:8768/api/tasks', {
+        await fetch('/api/tasks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload)

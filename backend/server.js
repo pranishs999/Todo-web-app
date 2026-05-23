@@ -102,5 +102,8 @@ app.delete('/api/tasks/:id', auth, async (req, res) => {
   io.emit('taskDeleted', req.params.id);
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+module.exports = app;
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+}
