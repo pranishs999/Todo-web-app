@@ -61,6 +61,8 @@
       </div>
       <nav class="space-y-1">
         <button onclick="showSection('kanban')" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-zinc-800">📋 Kanban</button>
+        <button onclick="showSection('dashboard')" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-zinc-800">📊 Dashboard</button>
+        <button id="nav-users" onclick="showSection('users')" class="hidden items-center gap-3 w-full p-3 rounded-2xl hover:bg-zinc-800">👥 Users</button>
         <button onclick="logout()" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-red-500/10 text-red-400 mt-auto">
           <i class="fas fa-sign-out-alt"></i> Logout
         </button>
@@ -87,20 +89,64 @@
         </button>
       </header>
 
-      <div class="flex-1 overflow-auto p-6">
+      <div id="section-kanban" class="flex-1 overflow-auto p-6">
         <div class="flex gap-6 overflow-x-auto pb-10">
           <div class="flex-1 min-w-[320px]">
-            <h3 class="text-zinc-400 mb-4">📋 Todo</h3>
+            <h3 class="text-zinc-400 mb-4 font-medium flex items-center justify-between">📋 Todo <span id="todo-count" class="text-xs bg-zinc-800 px-2 py-1 rounded-lg">0</span></h3>
             <div id="todo-col" class="column glass p-3 rounded-3xl min-h-[70vh]"></div>
           </div>
           <div class="flex-1 min-w-[320px]">
-            <h3 class="text-zinc-400 mb-4">🚀 In Progress</h3>
+            <h3 class="text-zinc-400 mb-4 font-medium flex items-center justify-between">🚀 In Progress <span id="progress-count" class="text-xs bg-zinc-800 px-2 py-1 rounded-lg">0</span></h3>
             <div id="progress-col" class="column glass p-3 rounded-3xl min-h-[70vh]"></div>
           </div>
           <div class="flex-1 min-w-[320px]">
-            <h3 class="text-zinc-400 mb-4">✅ Completed</h3>
+            <h3 class="text-zinc-400 mb-4 font-medium flex items-center justify-between">✅ Completed <span id="completed-count" class="text-xs bg-zinc-800 px-2 py-1 rounded-lg">0</span></h3>
             <div id="completed-col" class="column glass p-3 rounded-3xl min-h-[70vh]"></div>
           </div>
+        </div>
+      </div>
+
+      <div id="section-dashboard" class="hidden flex-1 overflow-auto p-10">
+        <h2 class="text-3xl font-bold mb-10">System Dashboard</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div class="glass p-8 rounded-3xl border-l-4 border-blue-500">
+            <p class="text-zinc-400 text-sm mb-2">Total Tasks</p>
+            <p id="stat-total" class="text-4xl font-bold">0</p>
+          </div>
+          <div class="glass p-8 rounded-3xl border-l-4 border-amber-500">
+            <p class="text-zinc-400 text-sm mb-2">Pending</p>
+            <p id="stat-todo" class="text-4xl font-bold">0</p>
+          </div>
+          <div class="glass p-8 rounded-3xl border-l-4 border-purple-500">
+            <p class="text-zinc-400 text-sm mb-2">In Progress</p>
+            <p id="stat-progress" class="text-4xl font-bold">0</p>
+          </div>
+          <div class="glass p-8 rounded-3xl border-l-4 border-emerald-500">
+            <p class="text-zinc-400 text-sm mb-2">Completed</p>
+            <p id="stat-completed" class="text-4xl font-bold">0</p>
+          </div>
+        </div>
+        <div class="glass p-10 rounded-3xl">
+          <h3 class="text-xl font-semibold mb-6">Recent Activity</h3>
+          <div id="recent-activity" class="space-y-4"></div>
+        </div>
+      </div>
+
+      <div id="section-users" class="hidden flex-1 overflow-auto p-10">
+        <h2 class="text-3xl font-bold mb-10">Team Management</h2>
+        <div class="glass rounded-3xl overflow-hidden">
+          <table class="w-full text-left">
+            <thead class="bg-zinc-900/50">
+              <tr>
+                <th class="p-5 font-semibold text-zinc-400">User</th>
+                <th class="p-5 font-semibold text-zinc-400">Username</th>
+                <th class="p-5 font-semibold text-zinc-400">Email</th>
+                <th class="p-5 font-semibold text-zinc-400">Role</th>
+                <th class="p-5 font-semibold text-zinc-400 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -112,7 +158,7 @@
       <h2 id="modal-title" class="text-2xl font-semibold mb-6">New Task</h2>
       <input id="task-title" placeholder="Task title" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4">
       <textarea id="task-desc" rows="3" placeholder="Description" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-6"></textarea>
-      <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
           <label class="text-xs text-zinc-400 mb-1">Priority</label>
           <select id="task-priority" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
@@ -122,9 +168,15 @@
           </select>
         </div>
         <div>
-          <label class="text-xs text-zinc-400 mb-1">Due Date</label>
-          <input type="date" id="task-due" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
+          <label class="text-xs text-zinc-400 mb-1">Assignee</label>
+          <select id="task-assignee" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
+            <option value="">Unassigned</option>
+          </select>
         </div>
+      </div>
+      <div class="mb-6">
+        <label class="text-xs text-zinc-400 mb-1">Due Date</label>
+        <input type="date" id="task-due" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
       </div>
       <div class="flex gap-3">
         <button onclick="hideModal()" class="flex-1 py-4 border border-zinc-700 rounded-2xl">Cancel</button>
@@ -140,7 +192,16 @@
     let currentUser = null;
     let socket;
     let allTasks = [];
+    let allUsers = [];
     let editingTaskId = null;
+
+    function timeAgo(date) {
+      const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+      if (seconds < 60) return 'just now';
+      if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+      if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+      return Math.floor(seconds / 86400) + 'd ago';
+    }
 
     function switchTab(n) {
       document.getElementById('login-form').classList.toggle('hidden', n === 1);
@@ -234,8 +295,11 @@
       document.getElementById('main-app').classList.remove('hidden');
       document.getElementById('profile-name').textContent = currentUser.name;
       document.getElementById('profile-role').textContent = currentUser.role;
+      if (currentUser.role === 'Admin') document.getElementById('nav-users').classList.replace('hidden', 'flex');
       connectSocket();
       loadTasks();
+      loadUsers();
+      updateDashboard();
     }
 
     function connectSocket() {
@@ -251,6 +315,44 @@
       });
       allTasks = await res.json();
       filterTasks();
+      updateDashboard();
+    }
+
+    async function loadUsers() {
+      if (currentUser.role !== 'Admin') return;
+      const res = await fetch('/api/admin/users', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      allUsers = await res.json();
+      const select = document.getElementById('task-assignee');
+      select.innerHTML = '<option value="">Unassigned</option>';
+      allUsers.forEach(u => select.innerHTML += `<option value="${u._id}">${u.name}</option>`);
+      renderUsersTable();
+    }
+
+    async function updateDashboard() {
+      const res = await fetch('/api/stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const stats = await res.json();
+      document.getElementById('stat-total').textContent = stats.Total;
+      document.getElementById('stat-todo').textContent = stats.Todo;
+      document.getElementById('stat-progress').textContent = stats['In Progress'];
+      document.getElementById('stat-completed').textContent = stats.Completed;
+
+      const activity = document.getElementById('recent-activity');
+      activity.innerHTML = '';
+      allTasks.slice(0, 5).forEach(t => {
+        activity.innerHTML += `
+          <div class="flex items-center justify-between p-4 bg-zinc-900/50 rounded-2xl">
+            <div class="flex items-center gap-3">
+              <div class="w-2 h-2 rounded-full ${t.status === 'Completed' ? 'bg-emerald-500' : 'bg-blue-500'}"></div>
+              <span>${t.title}</span>
+            </div>
+            <span class="text-xs text-zinc-500">${timeAgo(t.updatedAt)}</span>
+          </div>
+        `;
+      });
     }
 
     function filterTasks() {
@@ -275,7 +377,9 @@
         progress: document.getElementById('progress-col'),
         completed: document.getElementById('completed-col')
       };
-      Object.values(cols).forEach(c => c.innerHTML = '');
+      document.getElementById('todo-count').textContent = tasks.filter(t => t.status === 'Todo').length;
+      document.getElementById('progress-count').textContent = tasks.filter(t => t.status === 'In Progress').length;
+      document.getElementById('completed-count').textContent = tasks.filter(t => t.status === 'Completed').length;
 
       tasks.forEach(task => {
         const key = (task.status || 'Todo').toLowerCase().replace(' ', '');
@@ -285,6 +389,7 @@
         card.dataset.id = task._id;
         card.ondragstart = (e) => e.dataTransfer.setData("taskId", task._id);
         const isOwner = task.createdBy === currentUser.id || currentUser.role === 'Admin';
+        const assignee = allUsers.find(u => u._id === task.assignedTo);
         card.innerHTML = `
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-2">
@@ -299,12 +404,15 @@
             ` : ''}
           </div>
           ${task.description ? `<div class="text-xs text-zinc-400 mt-2 ml-6">${task.description}</div>` : ''}
-          <div class="flex justify-between mt-3 text-xs ml-6">
-            <span class="px-3 py-1 rounded-full ${task.priority === 'High' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}">${task.priority}</span>
-            <span>${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''}</span>
+          <div class="flex items-center justify-between mt-4 ml-6">
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-0.5 rounded-lg text-[10px] uppercase font-bold ${task.priority === 'High' ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-400'}">${task.priority}</span>
+              <span class="text-[10px] text-zinc-500"><i class="far fa-clock mr-1"></i>${timeAgo(task.createdAt)}</span>
+            </div>
+            ${assignee ? `<div title="${assignee.name}" class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">${assignee.name[0]}</div>` : ''}
           </div>
         `;
-        card.className = `task-card group glass p-5 rounded-3xl mb-3 cursor-grab`;
+        card.className = `task-card group glass p-5 rounded-3xl mb-3 cursor-grab border border-transparent hover:border-zinc-700 transition-all`;
         col.appendChild(card);
       });
     }
@@ -316,6 +424,7 @@
       document.getElementById('task-title').value = '';
       document.getElementById('task-desc').value = '';
       document.getElementById('task-priority').value = 'Medium';
+      document.getElementById('task-assignee').value = '';
       document.getElementById('task-due').value = '';
       document.getElementById('task-modal').classList.remove('hidden');
     }
@@ -332,6 +441,7 @@
         title,
         description: document.getElementById('task-desc').value.trim(),
         priority: document.getElementById('task-priority').value,
+        assignedTo: document.getElementById('task-assignee').value || null,
         dueDate: document.getElementById('task-due').value || null
       };
 
@@ -378,6 +488,7 @@
       document.getElementById('task-title').value = task.title;
       document.getElementById('task-desc').value = task.description || '';
       document.getElementById('task-priority').value = task.priority;
+      document.getElementById('task-assignee').value = task.assignedTo || '';
       document.getElementById('task-due').value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
       document.getElementById('task-modal').classList.remove('hidden');
     }
@@ -417,7 +528,41 @@
       location.reload();
     }
  
-    function showSection() { /* dummy */ }
+    function showSection(id) {
+      document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('hidden'));
+      document.getElementById('section-' + id).classList.remove('hidden');
+      if (id === 'dashboard') updateDashboard();
+      if (id === 'users') loadUsers();
+    }
+
+    function renderUsersTable() {
+      const body = document.getElementById('users-table-body');
+      body.innerHTML = '';
+      allUsers.forEach(u => {
+        body.innerHTML += `
+          <tr class="border-b border-zinc-800 hover:bg-zinc-800/30">
+            <td class="p-5">${u.name} ${u._id === currentUser.id ? '(You)' : ''}</td>
+            <td class="p-5 text-zinc-400">${u.username}</td>
+            <td class="p-5 text-zinc-400">${u.email}</td>
+            <td class="p-5">
+              <span class="px-3 py-1 rounded-full text-[10px] ${u.role === 'Admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}">${u.role}</span>
+            </td>
+            <td class="p-5 text-right">
+              ${u._id !== currentUser.id ? `<button onclick="deleteUser('${u._id}')" class="text-red-400 hover:text-red-300"><i class="fas fa-user-minus"></i></button>` : ''}
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function deleteUser(id) {
+      if (!confirm("Remove this user?")) return;
+      await fetch(`/api/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      loadUsers();
+    }
 
     // Auto Login
     if (token) {

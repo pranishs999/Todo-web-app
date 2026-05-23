@@ -38,7 +38,8 @@ const taskSchema = new mongoose.Schema({
   status: { type: String, default: 'Todo' },
   priority: { type: String, default: 'Medium' },
   dueDate: Date,
-  createdBy: String
+  createdBy: String,
+  assignedTo: String
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
@@ -84,6 +85,32 @@ app.post('/api/login', async (req, res) => {
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
   }
+});
+
+// ===================== ADMIN & STATS =====================
+app.get('/api/admin/users', auth, async (req, res) => {
+  if (req.user.role !== 'Admin') return res.status(403).json({ msg: 'Forbidden' });
+  const users = await User.find({}, '-password');
+  res.json(users);
+});
+
+app.delete('/api/admin/users/:id', auth, async (req, res) => {
+  if (req.user.role !== 'Admin') return res.status(403).json({ msg: 'Forbidden' });
+  await User.findByIdAndDelete(req.params.id);
+  res.json({ msg: 'User deleted' });
+});
+
+app.get('/api/stats', auth, async (req, res) => {
+  const stats = await Task.aggregate([
+    { $group: { _id: '$status', count: { $sum: 1 } } }
+  ]);
+  const formatted = stats.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {});
+  res.json({
+    Todo: formatted.Todo || 0,
+    'In Progress': formatted['In Progress'] || 0,
+    Completed: formatted.Completed || 0,
+    Total: stats.reduce((a, b) => a + b.count, 0)
+  });
 });
 
 // ===================== TASKS =====================
