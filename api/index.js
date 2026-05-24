@@ -37,6 +37,9 @@ const taskSchema = new mongoose.Schema({
   description: String,
   status: { type: String, default: 'Todo' },
   priority: { type: String, default: 'Medium' },
+  category: { type: String, default: 'Work' },
+  tags: [String],
+  progress: { type: Number, default: 0 },
   dueDate: Date,
   createdBy: String,
   assignedTo: String

@@ -168,15 +168,38 @@
           </select>
         </div>
         <div>
+          <label class="text-xs text-zinc-400 mb-1">Category</label>
+          <select id="task-category" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
+            <option value="Work">Work</option>
+            <option value="Personal">Personal</option>
+            <option value="Urgent">Urgent</option>
+            <option value="Design">Design</option>
+            <option value="Code">Code</option>
+          </select>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="text-xs text-zinc-400 mb-1">Tags (comma separated)</label>
+        <input id="task-tags" placeholder="e.g. bug, high-priority" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
+      </div>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
           <label class="text-xs text-zinc-400 mb-1">Assignee</label>
           <select id="task-assignee" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
             <option value="">Unassigned</option>
           </select>
         </div>
+        <div>
+          <label class="text-xs text-zinc-400 mb-1">Due Date</label>
+          <input type="date" id="task-due" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
+        </div>
       </div>
       <div class="mb-6">
-        <label class="text-xs text-zinc-400 mb-1">Due Date</label>
-        <input type="date" id="task-due" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
+        <div class="flex justify-between mb-2">
+          <label class="text-xs text-zinc-400">Progress</label>
+          <span id="progress-val" class="text-xs font-bold text-blue-400">0%</span>
+        </div>
+        <input type="range" id="task-progress" min="0" max="100" value="0" oninput="document.getElementById('progress-val').textContent = this.value + '%'" class="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
       </div>
       <div class="flex gap-3">
         <button onclick="hideModal()" class="flex-1 py-4 border border-zinc-700 rounded-2xl">Cancel</button>
@@ -390,26 +413,43 @@
         card.ondragstart = (e) => e.dataTransfer.setData("taskId", task._id);
         const isOwner = task.createdBy === currentUser.id || currentUser.role === 'Admin';
         const assignee = allUsers.find(u => u._id === task.assignedTo);
+        const tagsHtml = (task.tags || []).map(t => `<span class="bg-zinc-800/50 px-2 py-0.5 rounded text-[8px] text-zinc-400">#${t.trim()}</span>`).join(' ');
+        
         card.innerHTML = `
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-2">
               <input type="checkbox" ${task.status === 'Completed' ? 'checked' : ''} onchange="toggleStatus('${task._id}', '${task.status}')" class="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-blue-600 focus:ring-0">
               <div class="font-medium ${task.status === 'Completed' ? 'line-through text-zinc-500' : ''}">${task.title}</div>
             </div>
-            ${isOwner ? `
-              <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onclick="editTask('${task._id}')" class="text-zinc-400 hover:text-blue-400"><i class="fas fa-pencil-alt text-xs"></i></button>
-                <button onclick="deleteTask('${task._id}')" class="text-zinc-400 hover:text-red-400"><i class="fas fa-trash text-xs"></i></button>
-              </div>
-            ` : ''}
-          </div>
-          ${task.description ? `<div class="text-xs text-zinc-400 mt-2 ml-6">${task.description}</div>` : ''}
-          <div class="flex items-center justify-between mt-4 ml-6">
-            <div class="flex items-center gap-3">
-              <span class="px-2 py-0.5 rounded-lg text-[10px] uppercase font-bold ${task.priority === 'High' ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-400'}">${task.priority}</span>
-              <span class="text-[10px] text-zinc-500"><i class="far fa-clock mr-1"></i>${timeAgo(task.createdAt)}</span>
+            <div class="flex gap-2">
+              ${isOwner ? `
+                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onclick="editTask('${task._id}')" class="text-zinc-400 hover:text-blue-400"><i class="fas fa-pencil-alt text-xs"></i></button>
+                  <button onclick="deleteTask('${task._id}')" class="text-zinc-400 hover:text-red-400"><i class="fas fa-trash text-xs"></i></button>
+                </div>
+              ` : ''}
+              ${task.status !== 'Completed' ? `<button onclick="advanceTask('${task._id}', '${task.status}')" class="text-blue-400 hover:text-blue-300"><i class="fas fa-arrow-right text-xs"></i></button>` : ''}
             </div>
-            ${assignee ? `<div title="${assignee.name}" class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">${assignee.name[0]}</div>` : ''}
+          </div>
+          <div class="flex gap-2 mt-2 ml-6">${tagsHtml}</div>
+          ${task.description ? `<div class="text-xs text-zinc-400 mt-2 ml-6 line-clamp-2">${task.description}</div>` : ''}
+          
+          <div class="mt-4 ml-6">
+            <div class="flex justify-between text-[10px] text-zinc-500 mb-1">
+              <span>Progress</span>
+              <span>${task.progress || 0}%</span>
+            </div>
+            <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-blue-600 h-full rounded-full transition-all" style="width: ${task.progress || 0}%"></div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between mt-4 ml-6">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-zinc-800 text-zinc-300">${task.category || 'Work'}</span>
+              <span class="text-[9px] text-zinc-500 line-clamp-1"><i class="far fa-clock mr-1"></i>${timeAgo(task.createdAt)}</span>
+            </div>
+            ${assignee ? `<div title="${assignee.name}" class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shadow-lg">${assignee.name[0]}</div>` : ''}
           </div>
         `;
         card.className = `task-card group glass p-5 rounded-3xl mb-3 cursor-grab border border-transparent hover:border-zinc-700 transition-all`;
@@ -424,6 +464,10 @@
       document.getElementById('task-title').value = '';
       document.getElementById('task-desc').value = '';
       document.getElementById('task-priority').value = 'Medium';
+      document.getElementById('task-category').value = 'Work';
+      document.getElementById('task-tags').value = '';
+      document.getElementById('task-progress').value = 0;
+      document.getElementById('progress-val').textContent = '0%';
       document.getElementById('task-assignee').value = '';
       document.getElementById('task-due').value = '';
       document.getElementById('task-modal').classList.remove('hidden');
@@ -441,6 +485,9 @@
         title,
         description: document.getElementById('task-desc').value.trim(),
         priority: document.getElementById('task-priority').value,
+        category: document.getElementById('task-category').value,
+        tags: document.getElementById('task-tags').value.split(',').filter(t => t.trim()),
+        progress: parseInt(document.getElementById('task-progress').value),
         assignedTo: document.getElementById('task-assignee').value || null,
         dueDate: document.getElementById('task-due').value || null
       };
@@ -460,6 +507,23 @@
       } catch (e) {
         alert(e.message);
       }
+    }
+
+    async function advanceTask(id, currentStatus) {
+      const statuses = ['Todo', 'In Progress', 'Completed'];
+      let nextIndex = statuses.indexOf(currentStatus) + 1;
+      if (nextIndex >= statuses.length) return;
+      const nextStatus = statuses[nextIndex];
+      const progress = nextStatus === 'Completed' ? 100 : (nextStatus === 'In Progress' ? 50 : 0);
+
+      try {
+        await fetch(`/api/tasks/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ status: nextStatus, progress })
+        });
+        loadTasks();
+      } catch (e) { alert("Failed to advance task"); }
     }
 
     async function toggleStatus(id, currentStatus) {
@@ -488,6 +552,10 @@
       document.getElementById('task-title').value = task.title;
       document.getElementById('task-desc').value = task.description || '';
       document.getElementById('task-priority').value = task.priority;
+      document.getElementById('task-category').value = task.category || 'Work';
+      document.getElementById('task-tags').value = (task.tags || []).join(', ');
+      document.getElementById('task-progress').value = task.progress || 0;
+      document.getElementById('progress-val').textContent = (task.progress || 0) + '%';
       document.getElementById('task-assignee').value = task.assignedTo || '';
       document.getElementById('task-due').value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
       document.getElementById('task-modal').classList.remove('hidden');
