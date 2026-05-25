@@ -111,6 +111,19 @@ app.delete('/api/admin/users/:id', auth, async (req, res) => {
   res.json({ msg: 'User deleted' });
 });
 
+app.post('/api/admin/users', auth, async (req, res) => {
+  if (req.user.role !== 'Admin') return res.status(403).json({ msg: 'Forbidden' });
+  try {
+    const { name, username, email, password, role } = req.body;
+    if (await User.findOne({ $or: [{ email }, { username }] })) {
+      return res.status(400).json({ msg: 'User already exists (email or username taken)' });
+    }
+    const hashed = await bcrypt.hash(password || 'Password123', 10);
+    const user = await User.create({ name, username, email, password: hashed, role: role || 'Member' });
+    res.json({ id: user._id, name: user.name, username: user.username, role: user.role, email: user.email });
+  } catch (err) { res.status(400).json({ msg: err.message }); }
+});
+
 app.get('/api/stats', auth, async (req, res) => {
   const stats = await Task.aggregate([
     { $group: { _id: '$status', count: { $sum: 1 } } }
@@ -140,10 +153,10 @@ app.put('/api/tasks/:id', auth, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ msg: 'Task not found' });
-    if (req.user.role !== 'Admin' && task.createdBy !== req.user.id) {
-      return res.status(403).json({ msg: 'Unauthorized' });
-    }
-    const updated = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const isOwner = req.user.role === 'Admin' || task.createdBy.toString() === req.user.id;
+    // Non-owners can only update status and progress
+    const updateData = isOwner ? req.body : { status: req.body.status, progress: req.body.progress };
+    const updated = await Task.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(updated);
     io.emit('taskUpdated', updated);
   } catch (err) {

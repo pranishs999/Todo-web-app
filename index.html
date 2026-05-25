@@ -133,18 +133,21 @@
         </div>
       </div>
 
-      <div id="section-users" class="hidden flex-1 overflow-auto p-10">
-        <h2 class="text-3xl font-bold mb-10">Team Management</h2>
-        <div class="glass rounded-3xl overflow-hidden">
+      <div id="section-users" class="hidden flex-1 overflow-auto p-6 sm:p-10">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-2xl sm:text-3xl font-bold">Team Management</h2>
+          <button onclick="showAddUserModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-2xl text-sm"><i class="fas fa-user-plus"></i> Add User</button>
+        </div>
+        <div class="glass rounded-3xl overflow-x-auto">
           <table class="w-full text-left">
             <thead class="bg-zinc-900/50">
               <tr>
                 <th class="p-5 font-semibold text-zinc-400">User</th>
-                <th class="p-5 font-semibold text-zinc-400">Username</th>
-                <th class="p-5 font-semibold text-zinc-400">Email</th>
-                <th class="p-5 font-semibold text-zinc-400">Role</th>
-                <th class="p-5 font-semibold text-zinc-400 text-center">Assigned Tasks</th>
-                <th class="p-5 font-semibold text-zinc-400 text-right">Actions</th>
+                <th class="p-4 font-semibold text-zinc-400">Username</th>
+                <th class="p-4 font-semibold text-zinc-400 hidden sm:table-cell">Email</th>
+                <th class="p-4 font-semibold text-zinc-400">Role</th>
+                <th class="p-4 font-semibold text-zinc-400 text-center">Tasks</th>
+                <th class="p-4 font-semibold text-zinc-400 text-right">Actions</th>
               </tr>
             </thead>
             <tbody id="users-table-body"></tbody>
@@ -159,60 +162,103 @@
   </div>
 
   <!-- Task Modal -->
-  <div id="task-modal" class="hidden fixed inset-0 bg-black/70 flex items-start sm:items-center justify-center z-50 overflow-y-auto p-4">
-    <div class="glass w-full max-w-lg mx-auto rounded-3xl p-6 sm:p-8 my-4">
-      <h2 id="modal-title" class="text-2xl font-semibold mb-6">New Task</h2>
-      <input id="task-title" placeholder="Task title" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4">
-      <textarea id="task-desc" rows="3" placeholder="Description" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4"></textarea>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+  <div id="task-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div class="bg-[#0a192f] border border-blue-900 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] w-full max-w-lg mx-auto rounded-3xl p-6 sm:p-8 max-h-[95vh] overflow-y-auto transform transition-all">
+      <h2 id="modal-title" class="text-2xl font-bold mb-6 text-blue-100">New Task</h2>
+      <div class="space-y-4">
         <div>
-          <label class="text-xs text-zinc-400 mb-1">Priority</label>
-          <select id="task-priority" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Low">Low</option>
+          <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Task Title</label>
+          <input id="task-title" placeholder="What needs to be done?" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Description</label>
+          <textarea id="task-desc" rows="3" placeholder="Add more details..." class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors"></textarea>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Priority</label>
+            <select id="task-priority" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
+              <option value="Medium">Medium Priority</option>
+              <option value="High">High Priority</option>
+              <option value="Low">Low Priority</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Category</label>
+            <select id="task-category" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
+              <option value="Work">Work</option>
+              <option value="Personal">Personal</option>
+              <option value="Urgent">Urgent</option>
+              <option value="Design">Design</option>
+              <option value="Code">Code</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Tags</label>
+          <input id="task-tags" placeholder="bug, ui, backend..." class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Assignee</label>
+            <select id="task-assignee" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
+              <option value="">Unassigned</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Due Date</label>
+            <input type="date" id="task-due" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Status</label>
+            <select id="task-modal-status" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
+              <option value="Todo">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Progress</label>
+            <select id="task-progress" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
+              <option value="0">Not Started</option>
+              <option value="25">Getting Started</option>
+              <option value="50">Halfway There</option>
+              <option value="75">Almost Done</option>
+              <option value="100">Finished</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-4 mt-10">
+        <button onclick="hideModal()" class="flex-1 py-4 border border-blue-900 rounded-2xl hover:bg-blue-900/30 transition-colors">Cancel</button>
+        <button onclick="saveTask()" id="save-btn" class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold shadow-lg shadow-blue-900/40 transition-all">Create Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="add-user-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div class="bg-[#0a192f] border border-blue-900 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] w-full max-w-md mx-auto rounded-3xl p-8 transform transition-all">
+      <h2 class="text-2xl font-bold mb-6 text-blue-100">Add New User</h2>
+      <div id="add-user-error" class="hidden mb-6 p-4 bg-red-500/10 border border-red-500 rounded-2xl text-red-400 text-sm"></div>
+      <div class="space-y-4">
+        <input id="new-user-name" placeholder="Full Name" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
+        <input id="new-user-username" placeholder="Username" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
+        <input id="new-user-email" type="email" placeholder="Email Address" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
+        <input id="new-user-password" type="password" placeholder="Password" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
+        <div>
+          <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">User Role</label>
+          <select id="new-user-role" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
+            <option value="Member">Team Member</option>
+            <option value="Admin">Administrator</option>
           </select>
         </div>
-        <div>
-          <label class="text-xs text-zinc-400 mb-1">Category</label>
-          <select id="task-category" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
-            <option value="Work">Work</option>
-            <option value="Personal">Personal</option>
-            <option value="Urgent">Urgent</option>
-            <option value="Design">Design</option>
-            <option value="Code">Code</option>
-          </select>
-        </div>
       </div>
-      <div class="mb-4">
-        <label class="text-xs text-zinc-400 mb-1">Tags (comma separated)</label>
-        <input id="task-tags" placeholder="e.g. bug, high-priority" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label class="text-xs text-zinc-400 mb-1">Assignee</label>
-          <select id="task-assignee" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
-            <option value="">Unassigned</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs text-zinc-400 mb-1">Due Date</label>
-          <input type="date" id="task-due" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
-        </div>
-      </div>
-      <div class="mb-6">
-        <label class="text-xs text-zinc-400 mb-1">Progress</label>
-        <select id="task-progress" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
-          <option value="0">0% (Started)</option>
-          <option value="25">25% (Basic)</option>
-          <option value="50">50% (Halfway)</option>
-          <option value="75">75% (Almost Done)</option>
-          <option value="100">100% (Completed)</option>
-        </select>
-      </div>
-      <div class="flex gap-3">
-        <button onclick="hideModal()" class="flex-1 py-4 border border-zinc-700 rounded-2xl">Cancel</button>
-        <button onclick="saveTask()" id="save-btn" class="flex-1 py-4 bg-blue-600 rounded-2xl">Create Task</button>
+      <div class="flex gap-4 mt-10">
+        <button onclick="hideAddUserModal()" class="flex-1 py-4 border border-blue-900 rounded-2xl hover:bg-blue-900/30 transition-colors">Cancel</button>
+        <button onclick="addUser()" class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold shadow-lg shadow-blue-900/40 transition-all">Create User</button>
       </div>
     </div>
   </div>
@@ -442,43 +488,44 @@
       const isOwner = task.createdBy === currentUser.id || currentUser.role === 'Admin';
       const assignee = allUsers.find(u => u._id === task.assignedTo);
       const tagsHtml = (task.tags || []).map(t => `<span class="bg-zinc-800/50 px-2 py-0.5 rounded text-[8px] text-zinc-400">#${t.trim()}</span>`).join(' ');
+      const progressPct = task.progress || 0;
+      const progressColor = progressPct >= 100 ? 'bg-emerald-500' : progressPct >= 75 ? 'bg-blue-400' : 'bg-blue-600';
       
       card.innerHTML = `
-        <div class="flex items-start justify-between">
-          <div class="flex items-center gap-2">
-            <input type="checkbox" ${task.status === 'Completed' ? 'checked' : ''} onchange="toggleStatus('${task._id}', '${task.status}')" class="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-blue-600 focus:ring-0">
-            <div class="font-medium ${task.status === 'Completed' ? 'line-through text-zinc-500' : ''}">${task.title}</div>
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <div class="font-medium ${task.status === 'Completed' ? 'line-through text-zinc-500' : ''} truncate">${task.title}</div>
+            ${task.description ? `<div class="text-xs text-zinc-400 mt-1 line-clamp-2">${task.description}</div>` : ''}
           </div>
-          <div class="flex gap-2 items-center">
+          <div class="flex gap-1.5 items-center shrink-0">
+            <button onclick="editTask('${task._id}')" title="Edit" class="w-7 h-7 flex items-center justify-center text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 rounded-xl transition-colors"><i class="fas fa-pencil-alt text-xs"></i></button>
             ${isOwner ? `
-              <button onclick="editTask('${task._id}')" title="Edit" class="text-zinc-400 hover:text-blue-400 transition-colors"><i class="fas fa-pencil-alt text-xs"></i></button>
-              <button onclick="deleteTask('${task._id}')" title="Delete" class="text-zinc-400 hover:text-red-400 transition-colors"><i class="fas fa-trash text-xs"></i></button>
+              <button onclick="deleteTask('${task._id}')" title="Delete" class="w-7 h-7 flex items-center justify-center text-zinc-400 hover:text-red-400 hover:bg-zinc-800 rounded-xl transition-colors"><i class="fas fa-trash text-xs"></i></button>
             ` : ''}
-            ${task.status !== 'Completed' ? `<button onclick="advanceTask('${task._id}', '${task.status}')" title="Next Stage" class="text-blue-400 hover:text-blue-300"><i class="fas fa-arrow-right text-xs"></i></button>` : ''}
-          </div>
-        </div>
-        <div class="flex gap-2 mt-2 ml-6">${tagsHtml}</div>
-        ${task.description ? `<div class="text-xs text-zinc-400 mt-2 ml-6 line-clamp-2">${task.description}</div>` : ''}
-        
-        <div class="mt-4 ml-6">
-          <div class="flex justify-between text-[10px] text-zinc-500 mb-1">
-            <span>Progress</span>
-            <span>${task.progress || 0}%</span>
-          </div>
-          <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-            <div class="bg-blue-600 h-full rounded-full transition-all" style="width: ${task.progress || 0}%"></div>
           </div>
         </div>
 
-        <div class="flex items-center justify-between mt-4 ml-6">
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-zinc-800 text-zinc-300">${task.category || 'Work'}</span>
-            <span class="text-[9px] text-zinc-500 line-clamp-1"><i class="far fa-clock mr-1"></i>${timeAgo(task.createdAt)}</span>
+        ${tagsHtml ? `<div class="flex flex-wrap gap-1 mt-2">${tagsHtml}</div>` : ''}
+
+        <div class="mt-3">
+          <div class="w-full bg-zinc-800 h-1 rounded-full overflow-hidden">
+            <div class="${progressColor} h-full rounded-full transition-all" style="width: ${progressPct}%"></div>
           </div>
-          ${assignee ? `<div title="${assignee.name}" class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shadow-lg">${assignee.name[0]}</div>` : ''}
+        </div>
+
+        <div class="flex items-center justify-between mt-3 gap-2">
+          <select onchange="setStatus('${task._id}', this.value)" class="flex-1 text-xs bg-zinc-800 border border-zinc-700 rounded-xl px-2 py-1.5 text-zinc-200 cursor-pointer">
+            <option value="Todo" ${task.status === 'Todo' ? 'selected' : ''}>📋 Pending</option>
+            <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>🚀 In Progress</option>
+            <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>✅ Completed</option>
+          </select>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-[9px] text-zinc-500">${timeAgo(task.createdAt)}</span>
+            ${assignee ? `<div title="${assignee.name}" class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shadow-lg">${assignee.name[0]}</div>` : ''}
+          </div>
         </div>
       `;
-      card.className = `task-card group glass p-5 rounded-3xl mb-3 cursor-grab border border-transparent hover:border-zinc-700 transition-all`;
+      card.className = `task-card glass p-4 rounded-3xl mb-3 border border-transparent hover:border-zinc-700 transition-all`;
       return card;
     }
 
@@ -532,7 +579,8 @@
         tags: document.getElementById('task-tags').value.split(',').filter(t => t.trim()),
         progress: parseInt(document.getElementById('task-progress').value),
         assignedTo: document.getElementById('task-assignee').value || null,
-        dueDate: document.getElementById('task-due').value || null
+        dueDate: document.getElementById('task-due').value || null,
+        status: document.getElementById('task-modal-status').value
       };
 
       try {
@@ -552,54 +600,52 @@
       }
     }
 
-    async function advanceTask(id, currentStatus) {
-      const statuses = ['Todo', 'In Progress', 'Completed'];
-      let nextIndex = statuses.indexOf(currentStatus) + 1;
-      if (nextIndex >= statuses.length) return;
-      const nextStatus = statuses[nextIndex];
-      const progress = nextStatus === 'Completed' ? 100 : (nextStatus === 'In Progress' ? 50 : 0);
-
+    async function setStatus(id, newStatus) {
       try {
         await fetch(`/api/tasks/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ status: nextStatus, progress })
+          body: JSON.stringify({ status: newStatus })
         });
         loadTasks();
-      } catch (e) { alert("Failed to advance task"); }
-    }
-
-    async function toggleStatus(id, currentStatus) {
-      const statuses = ['Todo', 'In Progress', 'Completed'];
-      let nextIndex = (statuses.indexOf(currentStatus) + 1) % statuses.length;
-      const nextStatus = statuses[nextIndex];
-
-      try {
-        await fetch(`/api/tasks/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ status: nextStatus })
-        });
-        loadTasks();
-      } catch (e) {
-        alert("Failed to update status");
-      }
+      } catch(e) { alert('Failed to update status'); }
     }
 
     async function editTask(id) {
       const task = allTasks.find(t => t._id === id);
       if (!task) return;
       editingTaskId = id;
-      document.getElementById('modal-title').textContent = 'Edit Task';
+      const isOwner = task.createdBy === currentUser.id || currentUser.role === 'Admin';
+      
+      document.getElementById('modal-title').textContent = isOwner ? 'Edit Task' : 'Update Task Progress';
       document.getElementById('save-btn').textContent = 'Save Changes';
-      document.getElementById('task-title').value = task.title;
-      document.getElementById('task-desc').value = task.description || '';
-      document.getElementById('task-priority').value = task.priority;
-      document.getElementById('task-category').value = task.category || 'Work';
-      document.getElementById('task-tags').value = (task.tags || []).join(', ');
-      document.getElementById('task-progress').value = task.progress || 0;
-      document.getElementById('task-assignee').value = task.assignedTo || '';
-      document.getElementById('task-due').value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
+      
+      const titleInput = document.getElementById('task-title');
+      const descInput = document.getElementById('task-desc');
+      const priorityInput = document.getElementById('task-priority');
+      const catInput = document.getElementById('task-category');
+      const tagsInput = document.getElementById('task-tags');
+      const assigneeInput = document.getElementById('task-assignee');
+      const dueInput = document.getElementById('task-due');
+      const progInput = document.getElementById('task-progress');
+      const statInput = document.getElementById('task-modal-status');
+
+      titleInput.value = task.title;
+      descInput.value = task.description || '';
+      priorityInput.value = task.priority;
+      catInput.value = task.category || 'Work';
+      tagsInput.value = (task.tags || []).join(', ');
+      progInput.value = task.progress || 0;
+      assigneeInput.value = task.assignedTo || '';
+      dueInput.value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
+      statInput.value = task.status || 'Todo';
+
+      // Disable fields for non-owners
+      [titleInput, descInput, priorityInput, catInput, tagsInput, assigneeInput, dueInput].forEach(el => {
+        el.disabled = !isOwner;
+        el.style.opacity = isOwner ? '1' : '0.5';
+      });
+
       document.getElementById('task-modal').classList.remove('hidden');
     }
 
@@ -648,24 +694,24 @@
         const assignedCount = allTasks.filter(t => t.assignedTo === u._id).length;
         body.innerHTML += `
           <tr class="border-b border-zinc-800 hover:bg-zinc-800/30">
-            <td class="p-5">
+            <td class="p-4">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold">${u.name[0]}</div>
-                <span>${u.name} ${u._id === currentUser.id ? '<span class="text-xs text-zinc-500">(You)</span>' : ''}</span>
+                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">${u.name[0]}</div>
+                <span class="truncate">${u.name} ${u._id === currentUser.id ? '<span class="text-xs text-zinc-500">(You)</span>' : ''}</span>
               </div>
             </td>
-            <td class="p-5 text-zinc-400">@${u.username}</td>
-            <td class="p-5 text-zinc-400">${u.email}</td>
-            <td class="p-5">
-              <span class="px-3 py-1 rounded-full text-[10px] ${u.role === 'Admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}">${u.role}</span>
+            <td class="p-4 text-zinc-400">@${u.username}</td>
+            <td class="p-4 text-zinc-400 hidden sm:table-cell">${u.email}</td>
+            <td class="p-4">
+              <span class="px-2 py-1 rounded-full text-[10px] ${u.role === 'Admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}">${u.role}</span>
             </td>
-            <td class="p-5 text-center">
+            <td class="p-4 text-center">
               <button onclick="viewUserTasks('${u._id}', '${u.name}')" class="text-xs bg-zinc-800 hover:bg-zinc-700 px-3 py-1 rounded-lg text-zinc-300">
                 ${assignedCount} task${assignedCount !== 1 ? 's' : ''}
               </button>
             </td>
-            <td class="p-5 text-right flex gap-3 justify-end">
-              ${u._id !== currentUser.id ? `<button onclick="deleteUser('${u._id}')" title="Remove user" class="text-red-400 hover:text-red-300"><i class="fas fa-user-minus"></i></button>` : ''}
+            <td class="p-4 text-right">
+              ${u._id !== currentUser.id ? `<button onclick="deleteUser('${u._id}')" title="Remove user" class="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-zinc-800 rounded-xl ml-auto"><i class="fas fa-user-minus text-xs"></i></button>` : ''}
             </td>
           </tr>
         `;
@@ -688,11 +734,48 @@
 
     async function deleteUser(id) {
       if (!confirm("Remove this user?")) return;
-      await fetch(`/api/admin/users/${id}`, {
+      const res = await fetch(`/api/admin/users/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (!res.ok) { const d = await res.json(); return alert(d.msg); }
       loadUsers();
+    }
+
+    function showAddUserModal() {
+      ['new-user-name','new-user-username','new-user-email','new-user-password'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('new-user-role').value = 'Member';
+      document.getElementById('add-user-error').classList.add('hidden');
+      document.getElementById('add-user-modal').classList.remove('hidden');
+    }
+
+    function hideAddUserModal() {
+      document.getElementById('add-user-modal').classList.add('hidden');
+    }
+
+    async function addUser() {
+      const name = document.getElementById('new-user-name').value.trim();
+      const username = document.getElementById('new-user-username').value.trim();
+      const email = document.getElementById('new-user-email').value.trim();
+      const password = document.getElementById('new-user-password').value;
+      const role = document.getElementById('new-user-role').value;
+      const errEl = document.getElementById('add-user-error');
+      if (!name || !username || !email || !password) {
+        errEl.textContent = 'All fields are required';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      try {
+        const res = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ name, username, email, password, role })
+        });
+        const data = await res.json();
+        if (!res.ok) { errEl.textContent = data.msg; errEl.classList.remove('hidden'); return; }
+        hideAddUserModal();
+        loadUsers();
+      } catch(e) { errEl.textContent = 'Server error'; errEl.classList.remove('hidden'); }
     }
 
     // Fetch self profile then boot app
