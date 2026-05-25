@@ -159,12 +159,12 @@
   </div>
 
   <!-- Task Modal -->
-  <div id="task-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div class="glass w-full max-w-lg mx-4 rounded-3xl p-8 overflow-hidden">
+  <div id="task-modal" class="hidden fixed inset-0 bg-black/70 flex items-start sm:items-center justify-center z-50 overflow-y-auto p-4">
+    <div class="glass w-full max-w-lg mx-auto rounded-3xl p-6 sm:p-8 my-4">
       <h2 id="modal-title" class="text-2xl font-semibold mb-6">New Task</h2>
       <input id="task-title" placeholder="Task title" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4">
-      <textarea id="task-desc" rows="3" placeholder="Description" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-6"></textarea>
-      <div class="grid grid-cols-2 gap-4 mb-4">
+      <textarea id="task-desc" rows="3" placeholder="Description" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4"></textarea>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div>
           <label class="text-xs text-zinc-400 mb-1">Priority</label>
           <select id="task-priority" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
@@ -188,7 +188,7 @@
         <label class="text-xs text-zinc-400 mb-1">Tags (comma separated)</label>
         <input id="task-tags" placeholder="e.g. bug, high-priority" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
       </div>
-      <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div>
           <label class="text-xs text-zinc-400 mb-1">Assignee</label>
           <select id="task-assignee" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4">
@@ -217,7 +217,7 @@
     </div>
   </div>
 
-  <button onclick="showCreateModal()" class="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 hover:bg-blue-500 rounded-3xl text-4xl shadow-2xl flex items-center justify-center">+</button>
+  <button id="fab-new-task" onclick="showCreateModal()" class="hidden fixed bottom-8 right-8 w-16 h-16 bg-blue-600 hover:bg-blue-500 rounded-3xl text-4xl shadow-2xl flex items-center justify-center transition-all">+</button>
 
   <script>
     let token = localStorage.getItem('token');
@@ -328,6 +328,7 @@
       document.getElementById('profile-name').textContent = currentUser.name;
       document.getElementById('profile-role').textContent = currentUser.role;
       if (currentUser.role === 'Admin') document.getElementById('nav-users').classList.replace('hidden', 'flex');
+      document.getElementById('fab-new-task').classList.replace('hidden', 'flex');
       connectSocket();
       loadTasks();
       loadUsers();
@@ -634,6 +635,7 @@
     function logout() {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      document.getElementById('fab-new-task').classList.replace('flex', 'hidden');
       location.reload();
     }
  
@@ -705,6 +707,7 @@
         document.getElementById('profile-name').textContent = currentUser.name;
         document.getElementById('profile-role').textContent = currentUser.role;
         if (currentUser.role === 'Admin') document.getElementById('nav-users').classList.replace('hidden', 'flex');
+        document.getElementById('fab-new-task').classList.replace('hidden', 'flex');
         connectSocket();
         loadTasks();
         loadUsers();
