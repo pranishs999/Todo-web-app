@@ -70,7 +70,7 @@ app.post('/api/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, username, email, password: hashed });
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret123', { expiresIn: '7d' });
-    res.json({ token, user: { name: user.name, username: user.username, role: user.role, email } });
+    res.json({ token, user: { id: user._id, name: user.name, username: user.username, role: user.role, email: user.email } });
   } catch (err) {
     res.status(400).json({ msg: err.message });
   }
@@ -84,7 +84,7 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret123', { expiresIn: '7d' });
-    res.json({ token, user: { name: user.name, username: user.username, role: user.role, email: user.email } });
+    res.json({ token, user: { id: user._id, name: user.name, username: user.username, role: user.role, email: user.email } });
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
   }
@@ -125,16 +125,20 @@ app.post('/api/admin/users', auth, async (req, res) => {
 });
 
 app.get('/api/stats', auth, async (req, res) => {
-  const stats = await Task.aggregate([
-    { $group: { _id: '$status', count: { $sum: 1 } } }
-  ]);
-  const formatted = stats.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {});
-  res.json({
-    Todo: formatted.Todo || 0,
-    'In Progress': formatted['In Progress'] || 0,
-    Completed: formatted.Completed || 0,
-    Total: stats.reduce((a, b) => a + b.count, 0)
-  });
+  try {
+    const stats = await Task.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+    const formatted = stats.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {});
+    const recent = await Task.find().sort({ updatedAt: -1 }).limit(5).select('title status updatedAt');
+    res.json({
+      total: stats.reduce((a, b) => a + b.count, 0),
+      todo: formatted.Todo || 0,
+      inProgress: formatted['In Progress'] || 0,
+      completed: formatted.Completed || 0,
+      recent
+    });
+  } catch (e) { res.status(500).json({ msg: 'Server error' }); }
 });
 
 // ===================== TASKS =====================
