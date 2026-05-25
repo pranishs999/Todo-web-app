@@ -91,6 +91,14 @@ app.post('/api/login', async (req, res) => {
 });
 
 // ===================== ADMIN & STATS =====================
+app.get('/api/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id, '-password');
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+    res.json({ id: user._id, name: user.name, username: user.username, role: user.role, email: user.email });
+  } catch (e) { res.status(500).json({ msg: 'Server error' }); }
+});
+
 app.get('/api/admin/users', auth, async (req, res) => {
   if (req.user.role !== 'Admin') return res.status(403).json({ msg: 'Forbidden' });
   const users = await User.find({}, '-password');

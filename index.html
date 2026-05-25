@@ -143,6 +143,7 @@
                 <th class="p-5 font-semibold text-zinc-400">Username</th>
                 <th class="p-5 font-semibold text-zinc-400">Email</th>
                 <th class="p-5 font-semibold text-zinc-400">Role</th>
+                <th class="p-5 font-semibold text-zinc-400 text-center">Assigned Tasks</th>
                 <th class="p-5 font-semibold text-zinc-400 text-right">Actions</th>
               </tr>
             </thead>
@@ -159,7 +160,7 @@
 
   <!-- Task Modal -->
   <div id="task-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div class="glass w-full max-w-lg mx-4 rounded-3xl p-8">
+    <div class="glass w-full max-w-lg mx-4 rounded-3xl p-8 overflow-hidden">
       <h2 id="modal-title" class="text-2xl font-semibold mb-6">New Task</h2>
       <input id="task-title" placeholder="Task title" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-4">
       <textarea id="task-desc" rows="3" placeholder="Description" class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 mb-6"></textarea>
@@ -447,14 +448,12 @@
             <input type="checkbox" ${task.status === 'Completed' ? 'checked' : ''} onchange="toggleStatus('${task._id}', '${task.status}')" class="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-blue-600 focus:ring-0">
             <div class="font-medium ${task.status === 'Completed' ? 'line-through text-zinc-500' : ''}">${task.title}</div>
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-2 items-center">
             ${isOwner ? `
-              <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onclick="editTask('${task._id}')" class="text-zinc-400 hover:text-blue-400"><i class="fas fa-pencil-alt text-xs"></i></button>
-                <button onclick="deleteTask('${task._id}')" class="text-zinc-400 hover:text-red-400"><i class="fas fa-trash text-xs"></i></button>
-              </div>
+              <button onclick="editTask('${task._id}')" title="Edit" class="text-zinc-400 hover:text-blue-400 transition-colors"><i class="fas fa-pencil-alt text-xs"></i></button>
+              <button onclick="deleteTask('${task._id}')" title="Delete" class="text-zinc-400 hover:text-red-400 transition-colors"><i class="fas fa-trash text-xs"></i></button>
             ` : ''}
-            ${task.status !== 'Completed' ? `<button onclick="advanceTask('${task._id}', '${task.status}')" class="text-blue-400 hover:text-blue-300"><i class="fas fa-arrow-right text-xs"></i></button>` : ''}
+            ${task.status !== 'Completed' ? `<button onclick="advanceTask('${task._id}', '${task.status}')" title="Next Stage" class="text-blue-400 hover:text-blue-300"><i class="fas fa-arrow-right text-xs"></i></button>` : ''}
           </div>
         </div>
         <div class="flex gap-2 mt-2 ml-6">${tagsHtml}</div>
@@ -638,31 +637,51 @@
       location.reload();
     }
  
-    function showSection(id) {
-      document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('hidden'));
-      document.getElementById('section-' + id).classList.remove('hidden');
-      if (id === 'dashboard') updateDashboard();
-      if (id === 'users') loadUsers();
-    }
+    // showSection is defined above (line ~405) with full logic including flex
 
     function renderUsersTable() {
       const body = document.getElementById('users-table-body');
       body.innerHTML = '';
       allUsers.forEach(u => {
+        const assignedCount = allTasks.filter(t => t.assignedTo === u._id).length;
         body.innerHTML += `
           <tr class="border-b border-zinc-800 hover:bg-zinc-800/30">
-            <td class="p-5">${u.name} ${u._id === currentUser.id ? '(You)' : ''}</td>
-            <td class="p-5 text-zinc-400">${u.username}</td>
+            <td class="p-5">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold">${u.name[0]}</div>
+                <span>${u.name} ${u._id === currentUser.id ? '<span class="text-xs text-zinc-500">(You)</span>' : ''}</span>
+              </div>
+            </td>
+            <td class="p-5 text-zinc-400">@${u.username}</td>
             <td class="p-5 text-zinc-400">${u.email}</td>
             <td class="p-5">
               <span class="px-3 py-1 rounded-full text-[10px] ${u.role === 'Admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}">${u.role}</span>
             </td>
-            <td class="p-5 text-right">
-              ${u._id !== currentUser.id ? `<button onclick="deleteUser('${u._id}')" class="text-red-400 hover:text-red-300"><i class="fas fa-user-minus"></i></button>` : ''}
+            <td class="p-5 text-center">
+              <button onclick="viewUserTasks('${u._id}', '${u.name}')" class="text-xs bg-zinc-800 hover:bg-zinc-700 px-3 py-1 rounded-lg text-zinc-300">
+                ${assignedCount} task${assignedCount !== 1 ? 's' : ''}
+              </button>
+            </td>
+            <td class="p-5 text-right flex gap-3 justify-end">
+              ${u._id !== currentUser.id ? `<button onclick="deleteUser('${u._id}')" title="Remove user" class="text-red-400 hover:text-red-300"><i class="fas fa-user-minus"></i></button>` : ''}
             </td>
           </tr>
         `;
       });
+    }
+
+    function viewUserTasks(userId, userName) {
+      showSection('kanban');
+      // Show only tasks assigned to this user
+      const filtered = allTasks.filter(t => t.assignedTo === userId);
+      renderKanban(filtered);
+      // Show a temporary banner
+      const header = document.querySelector('header');
+      const banner = document.createElement('div');
+      banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-2 rounded-2xl text-sm z-50 shadow-lg';
+      banner.textContent = `Showing tasks assigned to ${userName}`;
+      document.body.appendChild(banner);
+      setTimeout(() => { banner.remove(); filterTasks(); }, 3000);
     }
 
     async function deleteUser(id) {
@@ -674,16 +693,27 @@
       loadUsers();
     }
 
-    // Auto Login
-    if (token) {
-      currentUser = { name: "You", role: "Admin" };
-      document.getElementById('auth-screen').classList.add('hidden');
-      document.getElementById('main-app').classList.remove('hidden');
-      document.getElementById('profile-name').textContent = currentUser.name;
-      document.getElementById('profile-role').textContent = currentUser.role;
-      connectSocket();
-      loadTasks();
+    // Fetch self profile then boot app
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (!res.ok) { localStorage.removeItem('token'); return; }
+        currentUser = data;
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        document.getElementById('profile-name').textContent = currentUser.name;
+        document.getElementById('profile-role').textContent = currentUser.role;
+        if (currentUser.role === 'Admin') document.getElementById('nav-users').classList.replace('hidden', 'flex');
+        connectSocket();
+        loadTasks();
+        loadUsers();
+        updateDashboard();
+      } catch(e) { localStorage.removeItem('token'); }
     }
+
+    // Auto Login
+    if (token) fetchCurrentUser();
   </script>
 </body>
 </html>
