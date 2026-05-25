@@ -3,13 +3,121 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TeamTodo</title>
+  <title>TeamTodo — Elevate Your Workflow</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f4ff',
+              100: '#d9e2ff',
+              200: '#bbcaff',
+              300: '#8da4ff',
+              400: '#5266ff',
+              500: '#3440ff',
+              600: '#2624ff',
+              700: '#201df3',
+              800: '#1b19c4',
+              900: '#1d1ca4',
+              950: '#0a0a2f',
+            },
+            glass: {
+              light: 'rgba(255, 255, 255, 0.03)',
+              medium: 'rgba(255, 255, 255, 0.05)',
+              dark: 'rgba(0, 0, 0, 0.2)',
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    :root {
+      --brand-glow: rgba(52, 64, 255, 0.15);
+    }
+    
+    body {
+      font-family: 'Outfit', sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    .glass {
+      background: rgba(15, 15, 25, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .glass-dark {
+      background: rgba(10, 10, 15, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-border-glow:hover {
+      border-color: rgba(52, 64, 255, 0.4);
+      box-shadow: 0 0 20px var(--brand-glow);
+    }
+
+    .sidebar-active {
+      background: linear-gradient(90deg, rgba(52, 64, 255, 0.1) 0%, rgba(52, 64, 255, 0) 100%);
+      border-left: 3px solid #3440ff;
+      color: #fff;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .kanban-column {
+      background: rgba(255, 255, 255, 0.015);
+      border: 1px dashed rgba(255, 255, 255, 0.05);
+    }
+    
+    .status-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='Length: 19, 137, 24 10a1 1 0 011.414 0l6 6 a1 1 0 01-1.414 1.414L12 11.414l-5.293 5.293a1 1 0 01-1.414-1.414l6-6z'/%3E%3C/svg%3E");
+    }
+
+    /* Transition effects */
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+<body class="bg-[#05050a] text-zinc-200 min-h-screen antialiased">
 
   <!-- Auth Screen -->
   <div id="auth-screen" class="flex items-center justify-center min-h-screen bg-zinc-950">
@@ -44,113 +152,188 @@
   </div>
 
   <!-- Main App -->
-  <div id="main-app" class="hidden flex h-screen">
-    <div class="w-64 bg-zinc-900 border-r border-zinc-800 p-5 flex flex-col">
-      <div class="flex items-center gap-2 mb-10">
-        <div class="w-8 h-8 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold">TT</div>
-        <h1 class="text-2xl font-semibold">TeamTodo</h1>
-      </div>
-      <div class="glass rounded-3xl p-4 mb-8">
+  <div id="main-app" class="hidden flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <div class="w-64 bg-[#080812] border-r border-[#1a1a2e] flex flex-col relative z-20">
+      <div class="p-6 mb-4">
         <div class="flex items-center gap-3">
-          <div id="profile-avatar" class="w-11 h-11 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center text-white text-xl">👤</div>
-          <div>
-            <p id="profile-name" class="font-semibold"></p>
-            <p id="profile-role" class="text-xs text-emerald-400"></p>
+          <div class="w-10 h-10 bg-gradient-to-tr from-brand-600 to-brand-400 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-brand-900/40 font-sans">TT</div>
+          <h1 class="text-xl font-bold tracking-tight text-white font-sans">TeamTodo</h1>
+        </div>
+      </div>
+      
+      <div class="px-4 mb-8">
+        <div class="glass-dark rounded-2xl p-4 border border-white/5 relative overflow-hidden group">
+          <div class="absolute inset-0 bg-brand-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="flex items-center gap-3 relative z-10">
+            <div id="profile-avatar" class="w-10 h-10 bg-gradient-to-br from-brand-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg shadow-inner">👤</div>
+            <div class="min-w-0">
+              <p id="profile-name" class="font-semibold text-sm truncate text-white"></p>
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                <p id="profile-role" class="text-[10px] uppercase font-bold tracking-widest text-emerald-400/80"></p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <nav class="space-y-1">
-        <button onclick="showSection('kanban')" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-zinc-800">📋 Kanban</button>
-        <button onclick="showSection('dashboard')" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-zinc-800">📊 Dashboard</button>
-        <button onclick="showSection('flex')" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-zinc-800">🧭 Flex View</button>
-        <button id="nav-users" onclick="showSection('users')" class="hidden items-center gap-3 w-full p-3 rounded-2xl hover:bg-zinc-800">👥 Users</button>
-        <button onclick="logout()" class="flex items-center gap-3 w-full p-3 rounded-2xl hover:bg-red-500/10 text-red-400 mt-auto">
-          <i class="fas fa-sign-out-alt"></i> Logout
+
+      <nav class="flex-1 px-2 space-y-1">
+        <button id="nav-kanban" onclick="showSection('kanban')" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-white/5 text-zinc-400 font-medium">
+          <i class="fas fa-columns w-5"></i> Tasks
+        </button>
+        <button id="nav-dashboard" onclick="showSection('dashboard')" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-white/5 text-zinc-400 font-medium">
+          <i class="fas fa-chart-pie w-5"></i> Dashboard
+        </button>
+        <button id="nav-flex" onclick="showSection('flex')" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-white/5 text-zinc-400 font-medium">
+          <i class="fas fa-layer-group w-5"></i> Flex View
+        </button>
+        <button id="nav-users" onclick="showSection('users')" class="hidden items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-white/5 text-zinc-400 font-medium">
+          <i class="fas fa-users w-5"></i> Team
         </button>
       </nav>
+
+      <div class="p-4 border-t border-[#1a1a2e]">
+        <button onclick="logout()" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-red-500/10 text-red-400/80 text-sm font-medium">
+          <i class="fas fa-power-off w-5"></i> Logout
+        </button>
+      </div>
     </div>
 
-    <div class="flex-1 flex flex-col">
-      <header class="h-14 bg-zinc-900 border-b border-zinc-800 px-6 flex items-center gap-4">
-        <input id="search-input" onkeyup="filterTasks()" placeholder="Search tasks..." class="bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-2 w-80 focus:outline-none focus:border-blue-500">
-        <select id="status-filter" onchange="filterTasks()" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-4 py-2">
-          <option value="">All Status</option>
-          <option value="Todo">Todo</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-        </select>
-        <select id="priority-filter" onchange="filterTasks()" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-4 py-2">
-          <option value="">All Priorities</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
-        </select>
-        <button onclick="exportToPDF()" class="ml-auto flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 px-5 py-2 rounded-2xl text-sm">
-          <i class="fas fa-file-pdf"></i> Export PDF
-        </button>
+    <!-- Content Area -->
+    <div class="flex-1 flex flex-col bg-[#05050a] relative overflow-hidden">
+      <!-- Background Glow -->
+      <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand-900/10 blur-[120px] rounded-full pointer-events-none"></div>
+
+      <header class="h-16 border-b border-[#1a1a2e] bg-[#05050a]/50 backdrop-blur-xl flex items-center justify-between px-8 relative z-10">
+        <div class="flex items-center gap-4 flex-1">
+          <div class="relative w-full max-w-md group">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm group-focus-within:text-brand-400 transition-colors"></i>
+            <input id="search-input" onkeyup="filterTasks()" placeholder="Quick search..." class="w-full bg-[#0d0d1a] border border-[#1a1a2e] rounded-xl pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 transition-all placeholder:text-zinc-600 focus:bg-[#0f0f25] text-zinc-200">
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <select id="status-filter" onchange="filterTasks()" class="bg-[#0d0d1a] border border-[#1a1a2e] rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-brand-500/50 text-zinc-300">
+              <option value="">All Status</option>
+              <option value="Todo">Todo</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+            <select id="priority-filter" onchange="filterTasks()" class="bg-[#0d0d1a] border border-[#1a1a2e] rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-brand-500/50 text-zinc-300">
+              <option value="">All Priorities</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <button onclick="exportToPDF()" class="flex items-center gap-2 bg-[#12122b] hover:bg-[#1a1a3d] border border-white/5 px-4 py-2 rounded-xl text-xs font-semibold text-zinc-300 transition-all shadow-sm">
+            <i class="fas fa-file-export text-brand-400"></i> Export PDF
+          </button>
+        </div>
       </header>
 
-      <div id="section-kanban" class="flex-1 overflow-auto p-6">
-        <div class="flex gap-6 overflow-x-auto pb-10">
-          <div class="flex-1 min-w-[320px]">
-            <h3 class="text-zinc-400 mb-4 font-medium flex items-center justify-between">📋 Todo <span id="todo-count" class="text-xs bg-zinc-800 px-2 py-1 rounded-lg">0</span></h3>
-            <div id="todo-col" class="column glass p-3 rounded-3xl min-h-[70vh]"></div>
+      <div id="section-kanban" class="flex-1 overflow-auto p-8 pt-6">
+        <div class="flex gap-6 h-full min-w-max pb-4">
+          <!-- Todo Column -->
+          <div class="w-80 flex flex-col h-full">
+            <div class="flex items-center justify-between mb-5 px-1">
+              <div class="flex items-center gap-2.5">
+                <div class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                <h3 class="text-sm font-bold text-zinc-100 tracking-wide uppercase">Todo</h3>
+              </div>
+              <span id="todo-count" class="text-[10px] font-bold bg-[#1a1a2e] text-zinc-400 px-2 py-0.5 rounded-full border border-white/5">0</span>
+            </div>
+            <div id="todo-col" class="kanban-column flex-1 p-3 rounded-2xl overflow-y-auto min-h-[500px] bg-white/[0.01]"></div>
           </div>
-          <div class="flex-1 min-w-[320px]">
-            <h3 class="text-zinc-400 mb-4 font-medium flex items-center justify-between">🚀 In Progress <span id="progress-count" class="text-xs bg-zinc-800 px-2 py-1 rounded-lg">0</span></h3>
-            <div id="progress-col" class="column glass p-3 rounded-3xl min-h-[70vh]"></div>
+
+          <!-- In Progress Column -->
+          <div class="w-80 flex flex-col h-full">
+            <div class="flex items-center justify-between mb-5 px-1">
+              <div class="flex items-center gap-2.5">
+                <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                <h3 class="text-sm font-bold text-zinc-100 tracking-wide uppercase">In Progress</h3>
+              </div>
+              <span id="progress-count" class="text-[10px] font-bold bg-[#1a1a2e] text-zinc-400 px-2 py-0.5 rounded-full border border-white/5">0</span>
+            </div>
+            <div id="progress-col" class="kanban-column flex-1 p-3 rounded-2xl overflow-y-auto min-h-[500px] bg-white/[0.01]"></div>
           </div>
-          <div class="flex-1 min-w-[320px]">
-            <h3 class="text-zinc-400 mb-4 font-medium flex items-center justify-between">✅ Completed <span id="completed-count" class="text-xs bg-zinc-800 px-2 py-1 rounded-lg">0</span></h3>
-            <div id="completed-col" class="column glass p-3 rounded-3xl min-h-[70vh]"></div>
+
+          <!-- Completed Column -->
+          <div class="w-80 flex flex-col h-full">
+            <div class="flex items-center justify-between mb-5 px-1">
+              <div class="flex items-center gap-2.5">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                <h3 class="text-sm font-bold text-zinc-100 tracking-wide uppercase">Completed</h3>
+              </div>
+              <span id="completed-count" class="text-[10px] font-bold bg-[#1a1a2e] text-zinc-400 px-2 py-0.5 rounded-full border border-white/5">0</span>
+            </div>
+            <div id="completed-col" class="kanban-column flex-1 p-3 rounded-2xl overflow-y-auto min-h-[500px] bg-white/[0.01]"></div>
           </div>
         </div>
       </div>
 
-      <div id="section-dashboard" class="hidden flex-1 overflow-auto p-10">
-        <h2 class="text-3xl font-bold mb-10">System Dashboard</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div class="glass p-8 rounded-3xl border-l-4 border-blue-500">
-            <p class="text-zinc-400 text-sm mb-2">Total Tasks</p>
-            <p id="stat-total" class="text-4xl font-bold">0</p>
+      <div id="section-dashboard" class="hidden flex-1 overflow-auto p-8 sm:p-12">
+        <h2 class="text-3xl font-bold mb-10 text-white tracking-tight">System Analytics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div class="glass p-6 rounded-3xl relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-brand-500/10 rounded-full blur-2xl group-hover:bg-brand-500/20 transition-all"></div>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Total Impact</p>
+            <p id="stat-total" class="text-4xl font-black text-white">0</p>
+            <p class="text-[10px] text-zinc-600 mt-2 flex items-center gap-1"><i class="fas fa-tasks text-brand-500"></i> Total tasks created</p>
           </div>
-          <div class="glass p-8 rounded-3xl border-l-4 border-amber-500">
-            <p class="text-zinc-400 text-sm mb-2">Pending</p>
-            <p id="stat-todo" class="text-4xl font-bold">0</p>
+          <div class="glass p-6 rounded-3xl relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all"></div>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Pending</p>
+            <p id="stat-todo" class="text-4xl font-black text-white">0</p>
+            <p class="text-[10px] text-zinc-600 mt-2 flex items-center gap-1"><i class="fas fa-hourglass-half text-amber-500"></i> Need attention</p>
           </div>
-          <div class="glass p-8 rounded-3xl border-l-4 border-purple-500">
-            <p class="text-zinc-400 text-sm mb-2">In Progress</p>
-            <p id="stat-progress" class="text-4xl font-bold">0</p>
+          <div class="glass p-6 rounded-3xl relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-brand-400/10 rounded-full blur-2xl group-hover:bg-brand-400/20 transition-all"></div>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">In Motion</p>
+            <p id="stat-progress" class="text-4xl font-black text-white">0</p>
+            <p class="text-[10px] text-zinc-600 mt-2 flex items-center gap-1"><i class="fas fa-rocket text-brand-400"></i> Active workflows</p>
           </div>
-          <div class="glass p-8 rounded-3xl border-l-4 border-emerald-500">
-            <p class="text-zinc-400 text-sm mb-2">Completed</p>
-            <p id="stat-completed" class="text-4xl font-bold">0</p>
+          <div class="glass p-6 rounded-3xl relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Achieved</p>
+            <p id="stat-completed" class="text-4xl font-black text-white">0</p>
+            <p class="text-[10px] text-zinc-600 mt-2 flex items-center gap-1"><i class="fas fa-check-double text-emerald-500"></i> Successfully finished</p>
           </div>
         </div>
-        <div class="glass p-10 rounded-3xl">
-          <h3 class="text-xl font-semibold mb-6">Recent Activity</h3>
-          <div id="recent-activity" class="space-y-4"></div>
+        <div class="glass p-8 rounded-3xl mt-6 border border-white/5">
+          <div class="flex items-center justify-between mb-8">
+            <h3 class="text-xl font-bold text-white uppercase tracking-tight">Timeline Activity</h3>
+            <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Real-time update</span>
+          </div>
+          <div id="recent-activity" class="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5"></div>
         </div>
       </div>
 
-      <div id="section-users" class="hidden flex-1 overflow-auto p-6 sm:p-10">
-        <div class="flex items-center justify-between mb-8">
-          <h2 class="text-2xl sm:text-3xl font-bold">Team Management</h2>
-          <button onclick="showAddUserModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-2xl text-sm"><i class="fas fa-user-plus"></i> Add User</button>
+      <div id="section-users" class="hidden flex-1 overflow-auto p-8 sm:p-12">
+        <div class="flex items-center justify-between mb-10">
+          <div>
+            <h2 class="text-3xl font-bold text-white tracking-tight">Team Hub</h2>
+            <p class="text-xs text-zinc-500 mt-1 uppercase tracking-widest font-bold">Manage collaborators and roles</p>
+          </div>
+          <button onclick="showAddUserModal()" class="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 px-6 py-3 rounded-2xl text-xs font-bold transition-all shadow-lg shadow-brand-900/20 active:scale-95 shadow-[0_0_15px_rgba(52,64,255,0.3)]">
+            <i class="fas fa-plus-circle"></i> Onboard Member
+          </button>
         </div>
-        <div class="glass rounded-3xl overflow-x-auto">
-          <table class="w-full text-left">
-            <thead class="bg-zinc-900/50">
-              <tr>
-                <th class="p-5 font-semibold text-zinc-400">User</th>
-                <th class="p-4 font-semibold text-zinc-400">Username</th>
-                <th class="p-4 font-semibold text-zinc-400 hidden sm:table-cell">Email</th>
-                <th class="p-4 font-semibold text-zinc-400">Role</th>
-                <th class="p-4 font-semibold text-zinc-400 text-center">Tasks</th>
-                <th class="p-4 font-semibold text-zinc-400 text-right">Actions</th>
+        <div class="glass rounded-[2rem] overflow-hidden border border-white/5">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-white/5">
+                <th class="p-6 font-bold text-[10px] text-zinc-400 uppercase tracking-widest">Collaborator</th>
+                <th class="p-6 font-bold text-[10px] text-zinc-400 uppercase tracking-widest hidden sm:table-cell">Contact Info</th>
+                <th class="p-6 font-bold text-[10px] text-zinc-400 uppercase tracking-widest">Clearance</th>
+                <th class="p-6 font-bold text-[10px] text-zinc-400 uppercase tracking-widest text-center">Workload</th>
+                <th class="p-6 font-bold text-[10px] text-zinc-400 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
-            <tbody id="users-table-body"></tbody>
+            <tbody id="users-table-body" class="divide-y divide-white/5"></tbody>
           </table>
         </div>
       </div>
@@ -162,103 +345,109 @@
   </div>
 
   <!-- Task Modal -->
-  <div id="task-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-    <div class="bg-[#0a192f] border border-blue-900 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] w-full max-w-lg mx-auto rounded-3xl p-6 sm:p-8 max-h-[95vh] overflow-y-auto transform transition-all">
-      <h2 id="modal-title" class="text-2xl font-bold mb-6 text-blue-100">New Task</h2>
-      <div class="space-y-4">
-        <div>
-          <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Task Title</label>
-          <input id="task-title" placeholder="What needs to be done?" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
+  <div id="task-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-xl">
+    <div class="glass w-full max-w-xl mx-auto rounded-[2.5rem] p-8 sm:p-10 max-h-[92vh] overflow-y-auto transform transition-all border border-white/10 shadow-[0_32px_128px_-12px_rgba(0,0,0,0.8)] relative">
+      <div class="absolute top-0 right-0 p-8">
+        <button onclick="hideModal()" class="text-zinc-500 hover:text-white transition-colors"><i class="fas fa-times text-xl"></i></button>
+      </div>
+      
+      <div class="mb-10">
+        <h2 id="modal-title" class="text-3xl font-black text-white tracking-tight mb-2">Define Mission</h2>
+        <p class="text-xs text-zinc-500 uppercase tracking-widest font-bold">Task parameters and assignment</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Left Side -->
+        <div class="space-y-6">
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">Title</label>
+            <input id="task-title" placeholder="Critical path item..." class="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-brand-500/50 transition-all font-medium text-white placeholder:text-zinc-700">
+          </div>
+          
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">Detail</label>
+            <textarea id="task-desc" rows="4" placeholder="Executive summary of the objective..." class="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-brand-500/50 transition-all font-medium text-white placeholder:text-zinc-700 resize-none"></textarea>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">References (Tags)</label>
+            <input id="task-tags" placeholder="bug, high-priority, q3..." class="w-full bg-white/5 border border-white/5 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-brand-500/50 transition-all font-medium text-white placeholder:text-zinc-700">
+          </div>
         </div>
-        <div>
-          <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Description</label>
-          <textarea id="task-desc" rows="3" placeholder="Add more details..." class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors"></textarea>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Priority</label>
-            <select id="task-priority" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
-              <option value="Medium">Medium Priority</option>
-              <option value="High">High Priority</option>
-              <option value="Low">Low Priority</option>
+
+        <!-- Right Side -->
+        <div class="space-y-6">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">Priority</label>
+              <select id="task-priority" class="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-xs font-bold text-zinc-300 focus:outline-none focus:border-brand-500/50">
+                <option value="High">H-CRITICAL</option>
+                <option value="Medium">M-NORMAL</option>
+                <option value="Low">L-ROUTINE</option>
+              </select>
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">Arena</label>
+              <select id="task-category" class="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-xs font-bold text-zinc-300 focus:outline-none focus:border-brand-500/50">
+                <option value="Work">Corporate</option>
+                <option value="Personal">Personal</option>
+                <option value="Code">Engineering</option>
+                <option value="Design">Visuals</option>
+                <option value="Urgent">Emergency</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">Collaborator</label>
+            <select id="task-assignee" class="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-xs font-bold text-zinc-300 focus:outline-none focus:border-brand-500/50">
+              <option value="">Standby / Unassigned</option>
             </select>
           </div>
-          <div>
-            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Category</label>
-            <select id="task-category" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
-              <option value="Work">Work</option>
-              <option value="Personal">Personal</option>
-              <option value="Urgent">Urgent</option>
-              <option value="Design">Design</option>
-              <option value="Code">Code</option>
-            </select>
+
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">Deadline</label>
+            <input type="date" id="task-due" class="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-xs font-bold text-zinc-300 focus:outline-none focus:border-brand-500/50">
           </div>
-        </div>
-        <div>
-          <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Tags</label>
-          <input id="task-tags" placeholder="bug, ui, backend..." class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Assignee</label>
-            <select id="task-assignee" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
-              <option value="">Unassigned</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Due Date</label>
-            <input type="date" id="task-due" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
-          </div>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Status</label>
-            <select id="task-modal-status" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
-              <option value="Todo">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">Progress</label>
-            <select id="task-progress" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500 transition-colors">
-              <option value="0">Not Started</option>
-              <option value="25">Getting Started</option>
-              <option value="50">Halfway There</option>
-              <option value="75">Almost Done</option>
-              <option value="100">Finished</option>
+
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">Current Status</label>
+            <select id="task-modal-status" class="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-xs font-bold text-zinc-300 focus:outline-none focus:border-brand-500/50">
+              <option value="Todo">Awaiting Kickoff</option>
+              <option value="In Progress">Active Execution</option>
+              <option value="Completed">Objective Achieved</option>
             </select>
           </div>
         </div>
       </div>
-      <div class="flex gap-4 mt-10">
-        <button onclick="hideModal()" class="flex-1 py-4 border border-blue-900 rounded-2xl hover:bg-blue-900/30 transition-colors">Cancel</button>
-        <button onclick="saveTask()" id="save-btn" class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold shadow-lg shadow-blue-900/40 transition-all">Create Task</button>
+
+      <div class="mt-12 flex gap-4">
+        <button onclick="saveTask()" id="save-btn" class="flex-1 py-5 bg-brand-600 hover:bg-brand-500 rounded-2xl text-sm font-black text-white tracking-widest uppercase shadow-xl shadow-brand-900/30 transition-all active:scale-[0.98]">Push Update</button>
       </div>
     </div>
   </div>
 
   <!-- Add User Modal -->
-  <div id="add-user-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-    <div class="bg-[#0a192f] border border-blue-900 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] w-full max-w-md mx-auto rounded-3xl p-8 transform transition-all">
-      <h2 class="text-2xl font-bold mb-6 text-blue-100">Add New User</h2>
-      <div id="add-user-error" class="hidden mb-6 p-4 bg-red-500/10 border border-red-500 rounded-2xl text-red-400 text-sm"></div>
-      <div class="space-y-4">
-        <input id="new-user-name" placeholder="Full Name" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
-        <input id="new-user-username" placeholder="Username" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
-        <input id="new-user-email" type="email" placeholder="Email Address" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
-        <input id="new-user-password" type="password" placeholder="Password" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
+  <div id="add-user-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md">
+    <div class="bg-blue-600/10 border border-blue-400/20 backdrop-blur-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] w-full max-w-md mx-auto rounded-3xl p-6 sm:p-8 transform transition-all">
+      <h2 class="text-xl sm:text-2xl font-bold mb-5 sm:mb-6 text-blue-100">Add New User</h2>
+      <div id="add-user-error" class="hidden mb-5 sm:mb-6 p-4 bg-red-500/10 border border-red-500 rounded-2xl text-red-400 text-sm"></div>
+      <div class="space-y-3 sm:space-y-4">
+        <input id="new-user-name" placeholder="Full Name" class="w-full bg-blue-950/40 border border-blue-800/50 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base focus:outline-none focus:border-blue-500">
+        <input id="new-user-username" placeholder="Username" class="w-full bg-blue-950/40 border border-blue-800/50 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base focus:outline-none focus:border-blue-500">
+        <input id="new-user-email" type="email" placeholder="Email Address" class="w-full bg-blue-950/40 border border-blue-800/50 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base focus:outline-none focus:border-blue-500">
+        <input id="new-user-password" type="password" placeholder="Password" class="w-full bg-blue-950/40 border border-blue-800/50 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base focus:outline-none focus:border-blue-500">
         <div>
-          <label class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1 block">User Role</label>
-          <select id="new-user-role" class="w-full bg-blue-950/50 border border-blue-900 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-500">
+          <label class="text-[10px] sm:text-xs font-semibold text-blue-400 uppercase tracking-widest mb-1 block">User Role</label>
+          <select id="new-user-role" class="w-full bg-blue-950/40 border border-blue-800/50 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base focus:outline-none focus:border-blue-500">
             <option value="Member">Team Member</option>
             <option value="Admin">Administrator</option>
           </select>
         </div>
       </div>
-      <div class="flex gap-4 mt-10">
-        <button onclick="hideAddUserModal()" class="flex-1 py-4 border border-blue-900 rounded-2xl hover:bg-blue-900/30 transition-colors">Cancel</button>
-        <button onclick="addUser()" class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold shadow-lg shadow-blue-900/40 transition-all">Create User</button>
+      <div class="flex gap-3 sm:gap-4 mt-8 sm:mt-10">
+        <button onclick="hideAddUserModal()" class="flex-1 py-3 sm:py-4 border border-blue-400/20 rounded-2xl text-sm sm:text-base hover:bg-blue-900/40 transition-colors">Cancel</button>
+        <button onclick="addUser()" class="flex-1 py-3 sm:py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-sm sm:text-base font-bold shadow-lg shadow-blue-900/40 transition-all">Create User</button>
       </div>
     </div>
   </div>
@@ -282,8 +471,26 @@
     }
 
     function switchTab(n) {
-      document.getElementById('login-form').classList.toggle('hidden', n === 1);
-      document.getElementById('register-form').classList.toggle('hidden', n === 0);
+      const loginTab = document.getElementById('login-tab');
+      const regTab = document.getElementById('register-tab');
+      const loginForm = document.getElementById('login-form');
+      const regForm = document.getElementById('register-form');
+
+      if (n === 0) {
+        loginTab.classList.add('border-b-2', 'border-brand-500', 'text-white');
+        loginTab.classList.remove('text-zinc-400');
+        regTab.classList.remove('border-b-2', 'border-brand-500', 'text-white');
+        regTab.classList.add('text-zinc-400');
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+      } else {
+        regTab.classList.add('border-b-2', 'border-brand-500', 'text-white');
+        regTab.classList.remove('text-zinc-400');
+        loginTab.classList.remove('border-b-2', 'border-brand-500', 'text-white');
+        loginTab.classList.add('text-zinc-400');
+        regForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+      }
     }
 
     function togglePassword(id) {
@@ -410,28 +617,39 @@
     }
 
     async function updateDashboard() {
-      const res = await fetch('/api/stats', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const stats = await res.json();
-      document.getElementById('stat-total').textContent = stats.Total;
-      document.getElementById('stat-todo').textContent = stats.Todo;
-      document.getElementById('stat-progress').textContent = stats['In Progress'];
-      document.getElementById('stat-completed').textContent = stats.Completed;
-
-      const activity = document.getElementById('recent-activity');
-      activity.innerHTML = '';
-      allTasks.slice(0, 5).forEach(t => {
-        activity.innerHTML += `
-          <div class="flex items-center justify-between p-4 bg-zinc-900/50 rounded-2xl">
-            <div class="flex items-center gap-3">
-              <div class="w-2 h-2 rounded-full ${t.status === 'Completed' ? 'bg-emerald-500' : 'bg-blue-500'}"></div>
-              <span>${t.title}</span>
+      try {
+        const res = await fetch('/api/stats', { headers: { Authorization: `Bearer ${token}` } });
+        const stats = await res.json();
+        document.getElementById('stat-total').textContent = stats.total;
+        document.getElementById('stat-todo').textContent = stats.todo;
+        document.getElementById('stat-progress').textContent = stats.inProgress;
+        document.getElementById('stat-completed').textContent = stats.completed;
+        
+        const activity = document.getElementById('recent-activity');
+        activity.innerHTML = '';
+        if (!stats.recent || stats.recent.length === 0) {
+          activity.innerHTML = '<p class="text-[10px] text-zinc-600 text-center py-6 uppercase tracking-widest font-bold">No recent missions detected</p>';
+          return;
+        }
+        stats.recent.forEach(act => {
+          const colorClass = act.status === 'Completed' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : (act.status === 'In Progress' ? 'bg-brand-400 shadow-[0_0_8px_rgba(52,64,255,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]');
+          activity.innerHTML += `
+            <div class="flex gap-6 relative z-10 group fade-in">
+              <div class="w-5 h-5 rounded-full ${colorClass} shrink-0 border-[3px] border-[#05050a] group-hover:scale-125 transition-transform relative z-10"></div>
+              <div class="flex-1 -mt-1.5 pb-8">
+                <div class="flex items-center justify-between mb-1.5">
+                  <p class="text-sm font-bold text-white group-hover:text-brand-300 transition-colors uppercase tracking-tight">${act.title}</p>
+                  <span class="text-[9px] text-zinc-600 font-black uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded">${timeAgo(act.updatedAt)}</span>
+                </div>
+                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full ${colorClass}"></span>
+                  Mission status: ${act.status}
+                </p>
+              </div>
             </div>
-            <span class="text-xs text-zinc-500">${timeAgo(t.updatedAt)}</span>
-          </div>
-        `;
-      });
+          `;
+        });
+      } catch(e) { console.error("Stats error", e); }
     }
 
     function filterTasks() {
@@ -451,89 +669,119 @@
     }
 
     function showSection(id) {
-      document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('hidden'));
-      document.getElementById('section-' + id).classList.remove('hidden');
+      document.querySelectorAll('#section-kanban, #section-dashboard, #section-users, #section-flex').forEach(s => s.classList.add('hidden'));
+      const activeSec = document.getElementById(`section-${id}`);
+      if (activeSec) {
+        activeSec.classList.remove('hidden');
+        activeSec.classList.add('fade-in');
+      }
+      
+      // Update sidebar active states
+      document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('sidebar-active', 'text-white'));
+      const activeBtn = document.getElementById(`nav-${id}`);
+      if (activeBtn) {
+        activeBtn.classList.add('sidebar-active');
+        activeBtn.classList.add('text-white');
+      }
+      
       if (id === 'dashboard') updateDashboard();
       if (id === 'users') loadUsers();
       if (id === 'flex') renderFlexView();
     }
 
+
+    function createTaskCard(task) {
+      const card = document.createElement('div');
+      card.className = 'glass p-5 rounded-2xl mb-4 glass-border-glow cursor-grab active:cursor-grabbing transition-all group fade-in';
+      card.draggable = true;
+      card.ondragstart = (e) => (draggedTaskId = task._id);
+
+      const assignee = allUsers.find(u => u._id === task.assignedTo);
+      const isOwner = task.createdBy === currentUser.id || currentUser.role === 'Admin';
+      const progressPct = task.progress || 0;
+      const progressColor = progressPct >= 100 ? 'bg-emerald-500' : progressPct >= 75 ? 'bg-brand-400' : 'bg-brand-600';
+
+      const tagsHtml = (task.tags || []).map(t => `<span class="bg-brand-500/10 text-brand-300 text-[9px] font-bold px-2 py-0.5 rounded-md border border-brand-500/10 uppercase tracking-tighter">${t}</span>`).join('');
+
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-white/5 tracking-widest">${task.category || 'General'}</span>
+              ${task.priority === 'High' ? '<span class="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]"></span>' : ''}
+            </div>
+            <div class="font-semibold text-white group-hover:text-brand-300 transition-colors ${task.status === 'Completed' ? 'line-through text-zinc-500' : ''} truncate text-sm leading-tight">${task.title}</div>
+          </div>
+          <div class="flex gap-1 items-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onclick="editTask('${task._id}')" title="Edit" class="w-7 h-7 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg"><i class="fas fa-pen text-[10px]"></i></button>
+            ${isOwner ? `
+              <button onclick="deleteTask('${task._id}')" title="Delete" class="w-7 h-7 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg"><i class="fas fa-trash-alt text-[10px]"></i></button>
+            ` : ''}
+          </div>
+        </div>
+
+        ${task.description ? `<p class="text-xs text-zinc-500 mt-2 line-clamp-2 leading-relaxed">${task.description}</p>` : ''}
+
+        <div class="flex flex-wrap gap-1.5 mt-3">${tagsHtml}</div>
+
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Progress</span>
+            <span class="text-[9px] font-bold text-zinc-400">${progressPct}%</span>
+          </div>
+          <div class="w-full bg-[#12122b] h-1 rounded-full overflow-hidden border border-white/5">
+            <div class="${progressColor} h-full rounded-full transition-all shadow-[0_0_8px_rgba(52,64,255,0.3)]" style="width: ${progressPct}%"></div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between mt-5 pt-4 border-t border-white/5 gap-3">
+          <div class="relative flex-1">
+             <select onchange="setStatus('${task._id}', this.value)" class="w-full text-[10px] font-bold bg-[#0d0d1a] border border-[#1a1a2e] rounded-lg px-2.5 py-1.5 text-zinc-300 cursor-pointer focus:outline-none focus:border-brand-500/50 appearance-none uppercase tracking-wider">
+              <option value="Todo" ${task.status === 'Todo' ? 'selected' : ''}>Pending</option>
+              <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>Active</option>
+              <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Finished</option>
+            </select>
+            <i class="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[8px] text-zinc-600 pointer-events-none"></i>
+          </div>
+          
+          <div class="flex items-center -space-x-1.5 shrink-0">
+             ${assignee ? `
+              <div title="Assigned to ${assignee.name}" class="w-6 h-6 rounded-lg ring-2 ring-[#080812] bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-[9px] font-bold text-white shadow-lg">${assignee.name[0]}</div>
+             ` : '<div class="w-6 h-6 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center"><i class="fas fa-user text-[8px] text-zinc-700"></i></div>'}
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
     function renderFlexView() {
       const container = document.getElementById('flex-cols');
+      if (!container) return;
       container.innerHTML = '';
       const cats = ['Work', 'Personal', 'Urgent', 'Design', 'Code'];
       
       cats.forEach(cat => {
         const tasks = allTasks.filter(t => (t.category || 'Work') === cat);
         const col = document.createElement('div');
-        col.className = 'flex-1 min-w-[320px]';
+        col.className = 'w-80 flex flex-col h-full';
         col.innerHTML = `
-          <h3 class="text-zinc-400 mb-4 font-medium flex items-center justify-between">${cat} <span class="text-xs bg-zinc-800 px-2 py-1 rounded-lg">${tasks.length}</span></h3>
-          <div id="flex-col-${cat}" class="glass p-3 rounded-3xl min-h-[70vh]"></div>
+          <div class="flex items-center justify-between mb-5 px-1">
+            <h3 class="text-sm font-bold text-zinc-100 tracking-wide uppercase">${cat}</h3>
+            <span class="text-[10px] font-bold bg-[#1a1a2e] text-zinc-400 px-2 py-0.5 rounded-full border border-white/5">${tasks.length}</span>
+          </div>
+          <div id="flex-col-${cat}" class="kanban-column flex-1 p-3 rounded-2xl overflow-y-auto min-h-[500px] bg-white/[0.01]"></div>
         `;
         container.appendChild(col);
         const colDiv = document.getElementById(`flex-col-${cat}`);
-        tasks.forEach(task => {
-          const card = createTaskCard(task);
-          colDiv.appendChild(card);
-        });
+        tasks.forEach(task => colDiv.appendChild(createTaskCard(task)));
       });
-    }
-
-    function createTaskCard(task) {
-      const card = document.createElement('div');
-      card.draggable = true;
-      card.dataset.id = task._id;
-      card.ondragstart = (e) => e.dataTransfer.setData("taskId", task._id);
-      const isOwner = task.createdBy === currentUser.id || currentUser.role === 'Admin';
-      const assignee = allUsers.find(u => u._id === task.assignedTo);
-      const tagsHtml = (task.tags || []).map(t => `<span class="bg-zinc-800/50 px-2 py-0.5 rounded text-[8px] text-zinc-400">#${t.trim()}</span>`).join(' ');
-      const progressPct = task.progress || 0;
-      const progressColor = progressPct >= 100 ? 'bg-emerald-500' : progressPct >= 75 ? 'bg-blue-400' : 'bg-blue-600';
-      
-      card.innerHTML = `
-        <div class="flex items-start justify-between gap-2">
-          <div class="flex-1 min-w-0">
-            <div class="font-medium ${task.status === 'Completed' ? 'line-through text-zinc-500' : ''} truncate">${task.title}</div>
-            ${task.description ? `<div class="text-xs text-zinc-400 mt-1 line-clamp-2">${task.description}</div>` : ''}
-          </div>
-          <div class="flex gap-1.5 items-center shrink-0">
-            <button onclick="editTask('${task._id}')" title="Edit" class="w-7 h-7 flex items-center justify-center text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 rounded-xl transition-colors"><i class="fas fa-pencil-alt text-xs"></i></button>
-            ${isOwner ? `
-              <button onclick="deleteTask('${task._id}')" title="Delete" class="w-7 h-7 flex items-center justify-center text-zinc-400 hover:text-red-400 hover:bg-zinc-800 rounded-xl transition-colors"><i class="fas fa-trash text-xs"></i></button>
-            ` : ''}
-          </div>
-        </div>
-
-        ${tagsHtml ? `<div class="flex flex-wrap gap-1 mt-2">${tagsHtml}</div>` : ''}
-
-        <div class="mt-3">
-          <div class="w-full bg-zinc-800 h-1 rounded-full overflow-hidden">
-            <div class="${progressColor} h-full rounded-full transition-all" style="width: ${progressPct}%"></div>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between mt-3 gap-2">
-          <select onchange="setStatus('${task._id}', this.value)" class="flex-1 text-xs bg-zinc-800 border border-zinc-700 rounded-xl px-2 py-1.5 text-zinc-200 cursor-pointer">
-            <option value="Todo" ${task.status === 'Todo' ? 'selected' : ''}>📋 Pending</option>
-            <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>🚀 In Progress</option>
-            <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>✅ Completed</option>
-          </select>
-          <div class="flex items-center gap-2 shrink-0">
-            <span class="text-[9px] text-zinc-500">${timeAgo(task.createdAt)}</span>
-            ${assignee ? `<div title="${assignee.name}" class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shadow-lg">${assignee.name[0]}</div>` : ''}
-          </div>
-        </div>
-      `;
-      card.className = `task-card glass p-4 rounded-3xl mb-3 border border-transparent hover:border-zinc-700 transition-all`;
-      return card;
     }
 
     function renderKanban(tasks) {
       const cols = {
-        todo: document.getElementById('todo-col'),
-        progress: document.getElementById('progress-col'),
-        completed: document.getElementById('completed-col')
+        'Todo': document.getElementById('todo-col'),
+        'In Progress': document.getElementById('progress-col'),
+        'Completed': document.getElementById('completed-col')
       };
       Object.values(cols).forEach(c => c.innerHTML = '');
       document.getElementById('todo-count').textContent = tasks.filter(t => t.status === 'Todo').length;
@@ -541,8 +789,7 @@
       document.getElementById('completed-count').textContent = tasks.filter(t => t.status === 'Completed').length;
 
       tasks.forEach(task => {
-        const key = (task.status || 'Todo').toLowerCase().replace(' ', '');
-        const colDiv = cols[key] || cols.todo;
+        const colDiv = cols[task.status || 'Todo'] || cols['Todo'];
         const card = createTaskCard(task);
         colDiv.appendChild(card);
       });
@@ -550,16 +797,16 @@
 
     function showCreateModal() {
       editingTaskId = null;
-      document.getElementById('modal-title').textContent = 'New Task';
-      document.getElementById('save-btn').textContent = 'Create Task';
+      document.getElementById('modal-title').textContent = 'Define Mission';
+      document.getElementById('save-btn').textContent = 'Push Update';
       document.getElementById('task-title').value = '';
       document.getElementById('task-desc').value = '';
       document.getElementById('task-priority').value = 'Medium';
       document.getElementById('task-category').value = 'Work';
       document.getElementById('task-tags').value = '';
-      document.getElementById('task-progress').value = 0;
       document.getElementById('task-assignee').value = '';
       document.getElementById('task-due').value = '';
+      document.getElementById('task-modal-status').value = 'Todo';
       document.getElementById('task-modal').classList.remove('hidden');
     }
 
@@ -569,18 +816,22 @@
 
     async function saveTask() {
       const title = document.getElementById('task-title').value.trim();
+      const status = document.getElementById('task-modal-status').value;
       if (!title) return alert("Title required");
  
+      // Auto-derive progress from status
+      const progress = status === 'Completed' ? 100 : (status === 'In Progress' ? 50 : 0);
+      
       const payload = {
         title,
         description: document.getElementById('task-desc').value.trim(),
         priority: document.getElementById('task-priority').value,
         category: document.getElementById('task-category').value,
         tags: document.getElementById('task-tags').value.split(',').filter(t => t.trim()),
-        progress: parseInt(document.getElementById('task-progress').value),
+        progress,
         assignedTo: document.getElementById('task-assignee').value || null,
         dueDate: document.getElementById('task-due').value || null,
-        status: document.getElementById('task-modal-status').value
+        status
       };
 
       try {
@@ -601,11 +852,13 @@
     }
 
     async function setStatus(id, newStatus) {
+      const task = allTasks.find(t => t._id === id);
+      const progress = newStatus === 'Completed' ? 100 : (newStatus === 'In Progress' ? 50 : 0);
       try {
         await fetch(`/api/tasks/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ status: newStatus })
+          body: JSON.stringify({ status: newStatus, progress })
         });
         loadTasks();
       } catch(e) { alert('Failed to update status'); }
@@ -617,8 +870,8 @@
       editingTaskId = id;
       const isOwner = task.createdBy === currentUser.id || currentUser.role === 'Admin';
       
-      document.getElementById('modal-title').textContent = isOwner ? 'Edit Task' : 'Update Task Progress';
-      document.getElementById('save-btn').textContent = 'Save Changes';
+      document.getElementById('modal-title').textContent = isOwner ? 'Modify Objective' : 'View Mission Details';
+      document.getElementById('save-btn').textContent = 'Commit Changes';
       
       const titleInput = document.getElementById('task-title');
       const descInput = document.getElementById('task-desc');
@@ -627,7 +880,6 @@
       const tagsInput = document.getElementById('task-tags');
       const assigneeInput = document.getElementById('task-assignee');
       const dueInput = document.getElementById('task-due');
-      const progInput = document.getElementById('task-progress');
       const statInput = document.getElementById('task-modal-status');
 
       titleInput.value = task.title;
@@ -635,7 +887,6 @@
       priorityInput.value = task.priority;
       catInput.value = task.category || 'Work';
       tagsInput.value = (task.tags || []).join(', ');
-      progInput.value = task.progress || 0;
       assigneeInput.value = task.assignedTo || '';
       dueInput.value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
       statInput.value = task.status || 'Todo';
@@ -693,25 +944,33 @@
       allUsers.forEach(u => {
         const assignedCount = allTasks.filter(t => t.assignedTo === u._id).length;
         body.innerHTML += `
-          <tr class="border-b border-zinc-800 hover:bg-zinc-800/30">
-            <td class="p-4">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">${u.name[0]}</div>
-                <span class="truncate">${u.name} ${u._id === currentUser.id ? '<span class="text-xs text-zinc-500">(You)</span>' : ''}</span>
+          <tr class="hover:bg-brand-500/[0.02] transition-colors group">
+            <td class="p-6">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-gradient-to-tr from-brand-600/20 to-brand-400/20 rounded-xl flex items-center justify-center text-xs font-bold text-brand-400 border border-brand-500/10 group-hover:scale-110 transition-transform">${u.name[0]}</div>
+                <div class="min-w-0">
+                  <p class="font-bold text-white text-sm truncate">${u.name} ${u._id === currentUser.id ? '<span class="text-[9px] bg-white/5 px-1.5 py-0.5 rounded ml-1 text-zinc-500">YOU</span>' : ''}</p>
+                  <p class="text-[10px] text-zinc-600 font-medium tracking-tight">@${u.username}</p>
+                </div>
               </div>
             </td>
-            <td class="p-4 text-zinc-400">@${u.username}</td>
-            <td class="p-4 text-zinc-400 hidden sm:table-cell">${u.email}</td>
-            <td class="p-4">
-              <span class="px-2 py-1 rounded-full text-[10px] ${u.role === 'Admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}">${u.role}</span>
+            <td class="p-6 hidden sm:table-cell">
+              <p class="text-[11px] text-zinc-400 font-medium">${u.email}</p>
             </td>
-            <td class="p-4 text-center">
-              <button onclick="viewUserTasks('${u._id}', '${u.name}')" class="text-xs bg-zinc-800 hover:bg-zinc-700 px-3 py-1 rounded-lg text-zinc-300">
-                ${assignedCount} task${assignedCount !== 1 ? 's' : ''}
+            <td class="p-6">
+              <span class="inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${u.role === 'Admin' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-brand-500/10 text-brand-400 border border-brand-500/20'}">${u.role}</span>
+            </td>
+            <td class="p-6 text-center">
+              <button onclick="viewUserTasks('${u._id}', '${u.name}')" class="text-[10px] font-bold bg-[#12122b] hover:bg-brand-500/20 hover:text-white px-4 py-2 rounded-xl text-zinc-400 border border-white/5 transition-all">
+                ${assignedCount} OBJECTIVES
               </button>
             </td>
-            <td class="p-4 text-right">
-              ${u._id !== currentUser.id ? `<button onclick="deleteUser('${u._id}')" title="Remove user" class="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-zinc-800 rounded-xl ml-auto"><i class="fas fa-user-minus text-xs"></i></button>` : ''}
+            <td class="p-6 text-right">
+              ${u._id !== currentUser.id ? `
+                <button onclick="deleteUser('${u._id}')" class="text-zinc-600 hover:text-red-400 w-8 h-8 rounded-lg hover:bg-red-500/10 transition-all">
+                  <i class="fas fa-user-minus text-xs"></i>
+                </button>
+              ` : '<i class="fas fa-shield-alt text-[10px] text-zinc-700 mr-2" title="System Protected"></i>'}
             </td>
           </tr>
         `;
